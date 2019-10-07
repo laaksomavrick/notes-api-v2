@@ -1,0 +1,23 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "linterOptions": {
+    "exclude": ["node_modules/**"]
+  },
+  "rules": {
+    "quotemark": [true, "double"],
+    "ordered-imports": [true],
+    "max-line-length": [true, 120],
+    "no-empty-interface": true,
+    "no-empty": true,
+    "no-any": true,
+    "arrow-parens": false,
+    "no-unused-expression": true,
+    "semicolon": true,
+    "indent": [true, "spaces", 4],
+    "trailing-comma": true,
+    "typedef": [true, "arrow-call-signature", "arrow-parameter"],
+    "no-console": false
+  },
+  "rulesDirectory": []
+}

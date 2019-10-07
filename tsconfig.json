@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "removeComments": true,
+    "target": "es6",
+    "outDir": "./dist",
+    "baseUrl": "./src",
+    "esModuleInterop": true
+  },
+  "typeAcquisition": {
+    "include": ["jest"]
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

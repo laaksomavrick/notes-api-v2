@@ -1,6 +1,7 @@
 import bodyParser from "body-parser";
 import cors from "cors";
-import express, { Request, Response, Router } from "express";
+import express, { Router } from "express";
+import { helloWorldHandler } from "./handlers";
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -8,9 +9,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 const router = Router();
-router.get("*", (req: Request, res: Response) => {
-    res.json({ hello: "world" });
-});
+router.get("*", helloWorldHandler);
 
 app.use(router);
 

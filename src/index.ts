@@ -1,6 +1,7 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Router } from "express";
+import { Database } from "./database";
 import { helloWorldHandler } from "./handlers";
 
 const app = express();
@@ -13,6 +14,16 @@ router.get("*", helloWorldHandler);
 
 app.use(router);
 
-app.listen(3000, () => {
-    console.log("app listening on 3000");
+const database = new Database({
+    database: "notes",
+    host: "localhost",
+    port: 5432,
+    user: "postgres",
 });
+
+(async (): Promise<void> => {
+  await database.init();
+  app.listen(3000, () => {
+    console.log("app listening on 3000");
+  });
+})();

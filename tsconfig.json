@@ -5,11 +5,22 @@
     "target": "es6",
     "outDir": "./dist",
     "baseUrl": "./src",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "noImplicitAny": true,
+    "module": "commonjs",
+    "declaration": true,
+    "lib": [
+      "dom",
+      "es6"
+    ],
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "types": [
+      "node",
+      "jest"
+    ]
   },
-  "typeAcquisition": {
-    "include": ["jest"]
-  },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "include": ["src/**/*"]
 }

@@ -1,8 +1,11 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Router } from "express";
+import { LoggerFactory } from "../lib/logger";
 import { Database } from "./database";
 import { helloWorldHandler } from "./handlers";
+
+const logger = LoggerFactory.getLogger();
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -24,6 +27,6 @@ const database = new Database({
 (async (): Promise<void> => {
   await database.init();
   app.listen(3000, () => {
-    console.log("app listening on 3000");
+    logger.info("app listening on 3000");
   });
 })();

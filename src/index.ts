@@ -25,8 +25,8 @@ const database = new Database({
 });
 
 (async (): Promise<void> => {
-  await database.init();
-  app.listen(3000, () => {
-    logger.info("app listening on 3000");
-  });
+    await database.init();
+    app.listen(3000, () => {
+        logger.info("app listening on 3000");
+    });
 })();

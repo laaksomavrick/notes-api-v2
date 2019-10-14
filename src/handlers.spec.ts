@@ -9,13 +9,13 @@ describe("Handlers test", () => {
 
     beforeEach(() => {
         // Casts required to satisfy strict mode typings
-        req = new Request() as unknown as express.Request;
-        res = new Response() as unknown as express.Response;
+        req = (new Request() as unknown) as express.Request;
+        res = (new Response() as unknown) as express.Response;
     });
 
     afterEach(() => {
-        (req as unknown as Response).resetMocked();
-        (res as unknown as Response).resetMocked();
+        ((req as unknown) as Response).resetMocked();
+        ((res as unknown) as Response).resetMocked();
     });
 
     describe("HelloWorldHandler", () => {

@@ -1,8 +1,8 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Router } from "express";
+import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
-import { Database } from "./database";
 import { helloWorldHandler } from "./handlers";
 
 const logger = LoggerFactory.getLogger();

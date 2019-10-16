@@ -1,5 +1,5 @@
 import pg from "pg";
-import { LoggerFactory } from "../lib/logger";
+import { LoggerFactory } from "../logger";
 
 export class Database {
     private readonly config: pg.PoolConfig;

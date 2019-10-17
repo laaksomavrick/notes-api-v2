@@ -8,7 +8,8 @@
     "start": "ts-node src/index.ts",
     "lint": "tslint -c tslint.json --fix '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
-    "test": "jest **/*.spec.ts"
+    "test": "jest **/*.spec.ts",
+    "db:init": "ts-node tasks/create-database.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.6",

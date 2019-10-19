@@ -17,16 +17,29 @@ export class Database {
 
     public async init(): Promise<void> {
         this.client = await this.pool.connect();
-        this.logger.info("database successfully initialized");
+        this.logger.info("database successfully connected");
     }
 
-    public async query<T>(query: string): Promise<QueryResult<T>> {
+    public async query(
+        query: string,
+        // tslint:disable-next-line:no-any
+        values: any[] = [],
+    ): Promise<QueryResult> {
         if (this.client === undefined) {
             await this.init();
         }
-        this.logger.debug("executing query", query);
+        this.logger.debug("executing query", query, values);
         // @ts-ignore
-        return this.client.query(query);
+        return this.client.query(query, values);
+    }
+
+    public async queryRows(
+        query: string,
+        // tslint:disable-next-line:no-any
+        values: any[] = [],
+    ): Promise<unknown[]> {
+        const result = await this.query(query, values);
+        return result.rows;
     }
 
     public async ok(): Promise<boolean> {
@@ -41,5 +54,10 @@ export class Database {
             // TODO: log error
             return false;
         }
+    }
+
+    public async disconnect(): Promise<void> {
+        // @ts-ignore
+        return this.client.release();
     }
 }

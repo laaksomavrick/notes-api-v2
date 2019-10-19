@@ -9,7 +9,8 @@
     "lint": "tslint -c tslint.json --fix '**/*.ts'",
     "format": "prettier --write '**/*.ts'",
     "test": "jest **/*.spec.ts",
-    "db:init": "ts-node tasks/create-database.ts"
+    "db:init": "ts-node tasks/create-database.ts",
+    "db:migrate": "ts-node tasks/migrate-database.ts"
   },
   "devDependencies": {
     "@types/cors": "^2.8.6",

@@ -1,8 +1,9 @@
 import { Pool, PoolClient, PoolConfig, QueryResult } from "pg";
+import { DatabaseConfig } from "../config";
 import { LoggerFactory } from "../logger";
 
 export class Database {
-    private readonly config: PoolConfig;
+    private readonly config: DatabaseConfig;
 
     private readonly logger = LoggerFactory.getLogger();
 
@@ -10,7 +11,7 @@ export class Database {
 
     private client: PoolClient | undefined = undefined;
 
-    constructor(config: PoolConfig) {
+    constructor(config: DatabaseConfig) {
         this.config = config;
         this.pool = new Pool(this.config);
     }

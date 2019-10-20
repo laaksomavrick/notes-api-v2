@@ -1,7 +1,7 @@
 import * as express from "express";
 import { Request } from "jest-express/lib/request";
 import { Response } from "jest-express/lib/response";
-import { helloWorldHandler } from "./handlers";
+import { HelloWorldHandler } from "./HelloWorldHandler";
 
 describe("Handlers test", () => {
     let req: express.Request;
@@ -19,11 +19,15 @@ describe("Handlers test", () => {
     });
 
     describe("HelloWorldHandler", () => {
-        it("hello, worlds", () => {
-            helloWorldHandler(req, res);
+        const helloWorldHandler = new HelloWorldHandler();
 
-            expect(res.json).toHaveBeenCalled();
-            expect(res.json).toHaveBeenCalledWith({ hello: "world" });
+        it("hello, worlds", () => {
+            helloWorldHandler.handle(req, res);
+
+            expect(res.status).toHaveBeenCalled();
+            expect(res.status).toHaveBeenCalledWith(200);
+            expect(res.send).toHaveBeenCalled();
+            expect(res.send).toHaveBeenCalledWith({ resource: { hello: "world" } });
         });
     });
 });

@@ -4,7 +4,7 @@ import express, { Express, Router } from "express";
 import { ServerConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
-import { helloWorldHandler } from "./handlers";
+import { HelloWorldHandler } from "./HelloWorldHandler";
 
 export class Application {
     private server: Express;
@@ -35,8 +35,10 @@ export class Application {
         app.use(bodyParser.json());
         app.use(cors());
 
+        const helloWorldHandler = new HelloWorldHandler();
+
         const router = Router();
-        router.get("*", helloWorldHandler);
+        router.get(helloWorldHandler.path, helloWorldHandler.handle.bind(helloWorldHandler));
 
         app.use(router);
         return app;

@@ -8,7 +8,9 @@ export abstract class Middleware extends HttpResponder {
         next: NextFunction,
     ): Promise<void> | void;
 
-    protected constructor() {
-        super();
-    }
+    protected abstract getHandler(): (
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ) => Promise<void> | void;
 }

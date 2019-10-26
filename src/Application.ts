@@ -1,19 +1,18 @@
 import bodyParser from "body-parser";
 import cors from "cors";
-import express, { Express, Router } from "express";
+import express, { Express } from "express";
 import { ServerConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 import { ErrorHandler } from "./ErrorHandler";
-import { HelloWorldHandler } from "./HelloWorldHandler";
-import { CreateUserHandler } from "./users/CreateUserHandler";
+import UserModule from "./users";
 
 export class Application {
     private server: Express;
 
-    private database: Database;
+    private readonly database: Database;
 
-    private config: ServerConfig;
+    private readonly config: ServerConfig;
 
     private logger = LoggerFactory.getLogger();
 
@@ -37,15 +36,14 @@ export class Application {
         app.use(bodyParser.json());
         app.use(cors());
 
-        const router = Router();
+        // TODO figure out a nice way to represent this in classes/type
 
-        const helloWorldHandler = new HelloWorldHandler(router);
-        const createUserHandler = new CreateUserHandler(router);
+        const userModule = new UserModule(this);
 
-        helloWorldHandler.bindRoute();
-        createUserHandler.bindRoute();
-
-        app.use(router);
+        const modules = [userModule];
+        for (const module of modules) {
+            module.build(app);
+        }
 
         const errorHandler = new ErrorHandler(app);
         errorHandler.bindHandler();

@@ -22,10 +22,11 @@ describe("Handlers test", () => {
     });
 
     describe("HelloWorldHandler", () => {
-        const helloWorldHandler = new HelloWorldHandler(database);
+        const helloWorldHandler = new HelloWorldHandler();
+        const handler = helloWorldHandler.getHandler();
 
         it("hello, worlds", () => {
-            helloWorldHandler.handle(req, res);
+            handler(req, res);
 
             expect(res.status).toHaveBeenCalled();
             expect(res.status).toHaveBeenCalledWith(200);

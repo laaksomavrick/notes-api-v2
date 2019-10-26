@@ -1,18 +1,12 @@
-import { Request, Response, Router } from "express";
+import { Request, Response } from "express";
 import { Handler } from "./Handler";
 
 export class HelloWorldHandler extends Handler {
-    public path = "*";
-
-    constructor(router: Router) {
-        super(router);
+    public getHandler(): (req: Request, res: Response) => Promise<void> | void {
+        return this.handle.bind(this);
     }
 
-    public bindRoute(): void {
-        this.router.get(this.path, this.handle.bind(this));
-    }
-
-    public handle(req: Request, res: Response): void {
+    protected handle(req: Request, res: Response): void {
         this.httpOk(res, { hello: "world" });
     }
 }

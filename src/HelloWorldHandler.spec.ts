@@ -1,16 +1,19 @@
 import * as express from "express";
 import { Request } from "jest-express/lib/request";
 import { Response } from "jest-express/lib/response";
+import { Database } from "../lib/database";
 import { HelloWorldHandler } from "./HelloWorldHandler";
 
 describe("Handlers test", () => {
     let req: express.Request;
     let res: express.Response;
+    let database: Database;
 
     beforeEach(() => {
         // Casts required to satisfy strict mode typings
         req = (new Request() as unknown) as express.Request;
         res = (new Response() as unknown) as express.Response;
+        database = (jest.fn() as unknown) as Database;
     });
 
     afterEach(() => {
@@ -19,7 +22,7 @@ describe("Handlers test", () => {
     });
 
     describe("HelloWorldHandler", () => {
-        const helloWorldHandler = new HelloWorldHandler();
+        const helloWorldHandler = new HelloWorldHandler(database);
 
         it("hello, worlds", () => {
             helloWorldHandler.handle(req, res);

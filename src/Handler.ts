@@ -1,8 +1,15 @@
 import { Request, Response } from "express";
+import { Database } from "../lib/database";
 import { HttpError } from "./HttpError";
 
 export abstract class Handler {
     public abstract readonly path: string;
+
+    private database: Database;
+
+    protected constructor(database: Database) {
+        this.database = database;
+    }
 
     public abstract handle(req: Request, res: Response): Promise<void> | void;
 

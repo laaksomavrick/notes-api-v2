@@ -10,11 +10,14 @@ import { LoggerFactory } from "../lib/logger";
         postgresDb = new Database({
             database: "postgres",
             host: "localhost",
+            password: undefined,
             port: 5432,
             user: "postgres",
         });
 
         await postgresDb.init();
+
+        // TODO: check that db doesn't already exist, fail gracefully if so
 
         await postgresDb.query("CREATE DATABASE notes;");
 
@@ -23,6 +26,7 @@ import { LoggerFactory } from "../lib/logger";
         notesDb = new Database({
             database: "notes",
             host: "localhost",
+            password: undefined,
             port: 5432,
             user: "postgres",
         });

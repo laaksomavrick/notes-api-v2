@@ -16,6 +16,7 @@ const MIGRATIONS_DIRECTORY = path.join(process.cwd(), "migrations");
         notesDb = new Database({
             database: "notes",
             host: "localhost",
+            password: undefined,
             port: 5432,
             user: "postgres",
         });

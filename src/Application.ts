@@ -4,7 +4,9 @@ import express, { Express, Router } from "express";
 import { ServerConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
+import { ErrorHandler } from "./ErrorHandler";
 import { HelloWorldHandler } from "./HelloWorldHandler";
+import { CreateUserHandler } from "./users/CreateUserHandler";
 
 export class Application {
     private server: Express;
@@ -38,10 +40,16 @@ export class Application {
         const router = Router();
 
         const helloWorldHandler = new HelloWorldHandler(router);
+        const createUserHandler = new CreateUserHandler(router);
 
         helloWorldHandler.bindRoute();
+        createUserHandler.bindRoute();
 
         app.use(router);
+
+        const errorHandler = new ErrorHandler(app);
+        errorHandler.bindHandler();
+
         return app;
     }
 }

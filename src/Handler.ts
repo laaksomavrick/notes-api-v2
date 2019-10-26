@@ -1,17 +1,18 @@
-import { Request, Response } from "express";
-import { Database } from "../lib/database";
+import { Request, Response, Router } from "express";
 import { HttpError } from "./HttpError";
 
 export abstract class Handler {
-    public abstract readonly path: string;
+    protected abstract readonly path: string;
 
-    private database: Database;
+    protected abstract handle(req: Request, res: Response): Promise<void> | void;
 
-    protected constructor(database: Database) {
-        this.database = database;
+    public abstract bindRoute(): void;
+
+    protected readonly router: Router;
+
+    protected constructor(router: Router) {
+        this.router = router;
     }
-
-    public abstract handle(req: Request, res: Response): Promise<void> | void;
 
     public httpOk(res: Response, resource: object, status: number = 200): void {
         res.status(status).send({

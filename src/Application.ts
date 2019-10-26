@@ -35,10 +35,11 @@ export class Application {
         app.use(bodyParser.json());
         app.use(cors());
 
-        const helloWorldHandler = new HelloWorldHandler(this.database);
-
         const router = Router();
-        router.get(helloWorldHandler.path, helloWorldHandler.handle.bind(helloWorldHandler));
+
+        const helloWorldHandler = new HelloWorldHandler(router);
+
+        helloWorldHandler.bindRoute();
 
         app.use(router);
         return app;

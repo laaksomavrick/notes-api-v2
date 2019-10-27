@@ -1,12 +1,13 @@
 import { Express, NextFunction, Request, Response } from "express";
+import { Database } from "../lib/database";
 import { HttpError } from "./HttpError";
 import { HttpResponder } from "./HttpResponder";
 
 export class ErrorHandler extends HttpResponder {
     private app: Express;
 
-    constructor(app: Express) {
-        super();
+    constructor(app: Express, database: Database) {
+        super(database);
         this.app = app;
     }
 

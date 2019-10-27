@@ -5,21 +5,22 @@ import { ServerConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 import { ErrorHandler } from "./ErrorHandler";
-import UserModule from "./users";
+import UserRouteHandlerCollection from "./users";
 
 export class Application {
-    private server: Express;
+    public readonly server: Express;
 
-    private readonly database: Database;
+    public readonly database: Database;
 
-    private readonly config: ServerConfig;
+    public readonly config: ServerConfig;
 
-    private logger = LoggerFactory.getLogger();
+    public logger = LoggerFactory.getLogger();
 
     constructor(database: Database, config: ServerConfig) {
-        this.server = this.buildApp();
+        this.server = express();
         this.database = database;
         this.config = config;
+        this.buildApp();
     }
 
     public async serve(): Promise<void> {
@@ -30,24 +31,21 @@ export class Application {
     }
 
     // TODO: may want to pull this out at some point
-    private buildApp(): Express {
-        const app = express();
-        app.use(bodyParser.urlencoded({ extended: true }));
-        app.use(bodyParser.json());
-        app.use(cors());
+    private buildApp(): void {
+        this.server.use(bodyParser.urlencoded({ extended: true }));
+        this.server.use(bodyParser.json());
+        this.server.use(cors());
 
         // TODO figure out a nice way to represent this in classes/type
 
-        const userModule = new UserModule(this);
+        const userRouteHandlerCollection = new UserRouteHandlerCollection(this);
 
-        const modules = [userModule];
-        for (const module of modules) {
-            module.build(app);
+        const routeHandlerCollections = [userRouteHandlerCollection];
+        for (const routeHandlerCollection of routeHandlerCollections) {
+            routeHandlerCollection.build();
         }
 
-        const errorHandler = new ErrorHandler(app);
+        const errorHandler = new ErrorHandler(this.server, this.database);
         errorHandler.bindHandler();
-
-        return app;
     }
 }

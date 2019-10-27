@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { Handler } from "../Handler";
-import { ICreateUserDto } from "./CreateUserMiddleware";
+import { BadRequestError, UnprocessableEntityError } from "../HttpError";
+import { CreateUserDto } from "./CreateUserDto";
 
 export class CreateUserHandler extends Handler {
     public getHandler(): (req: Request, res: Response) => void {
@@ -8,7 +9,23 @@ export class CreateUserHandler extends Handler {
     }
 
     protected handle(req: Request, res: Response): void {
-        const dto = req.body as ICreateUserDto;
+        // Parse dto
+        const dto = CreateUserDto.build(req.body);
+
+        if (!dto) {
+            throw new BadRequestError();
+        }
+
+        const valid = dto.isValid();
+
+        if (!valid) {
+            throw new UnprocessableEntityError();
+        }
+
+        // Check that the user doesn't already exist
+
+        // Create user
+
         this.httpOk(res, { user: dto });
     }
 }

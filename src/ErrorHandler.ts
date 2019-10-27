@@ -6,8 +6,8 @@ import { HttpResponder } from "./HttpResponder";
 export class ErrorHandler extends HttpResponder {
     private app: Express;
 
-    constructor(app: Express, database: Database) {
-        super(database);
+    constructor(app: Express) {
+        super();
         this.app = app;
     }
 

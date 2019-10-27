@@ -45,7 +45,7 @@ export class Application {
             routeHandlerCollection.build();
         }
 
-        const errorHandler = new ErrorHandler(this.server, this.database);
+        const errorHandler = new ErrorHandler(this.server);
         errorHandler.bindHandler();
     }
 }

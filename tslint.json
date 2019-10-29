@@ -7,7 +7,7 @@
   "rules": {
     "quotemark": [true, "double"],
     "ordered-imports": [true],
-    "max-line-length": [true, 120],
+    "max-line-length": [true, 100],
     "no-empty-interface": true,
     "no-empty": true,
     "no-any": true,

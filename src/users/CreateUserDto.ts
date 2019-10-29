@@ -37,6 +37,7 @@ export class CreateUserDto extends Dto {
     }
 
     public isValid(): boolean {
-        return this.email.length > 0 && this.password.length > 0;
+        // TODO: and is an email
+        return this.email.length > 0 && this.password.length >= 8;
     }
 }

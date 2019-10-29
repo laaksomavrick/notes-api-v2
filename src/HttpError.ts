@@ -21,6 +21,12 @@ export class HttpError extends Error {
     }
 }
 
+export class ConflictError extends HttpError {
+    constructor(errors?: IErrorDetail[] | undefined) {
+        super("The resource already exists", 409, errors);
+    }
+}
+
 export class BadRequestError extends HttpError {
     constructor(errors?: IErrorDetail[] | undefined) {
         super("The request was malformed", 400, errors);

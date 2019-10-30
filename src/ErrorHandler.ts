@@ -16,7 +16,7 @@ export class ErrorHandler extends HttpResponder {
     }
 
     public handle(error: HttpError, req: Request, res: Response, next: NextFunction): void {
-        console.log("Error handler invoked");
+        this.app.logger.debug("Error handler invoked");
         const status = error.status || 500;
         this.httpError(res, error, status);
     }

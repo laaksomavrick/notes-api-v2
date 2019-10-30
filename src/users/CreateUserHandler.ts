@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Handler } from "../Handler";
 import { BadRequestError, ConflictError, UnprocessableEntityError } from "../HttpError";
 import { CreateUserDto } from "./CreateUserDto";
@@ -12,13 +12,11 @@ export class CreateUserHandler extends Handler {
         this.userRepository = userRepository;
     }
 
-    public getHandler(): (req: Request, res: Response) => void {
-        return this.handle.bind(this);
+    public getHandler(): (req: Request, res: Response, next: NextFunction) => void {
+        return this.handleErrors(this.handle.bind(this));
     }
 
-    // TODO error handling w/r/t async/await, universal
-    // https://medium.com/@Abazhenov/using-async-await-in-express-with-node-8-b8af872c0016
-    protected async handle(req: Request, res: Response): Promise<void> {
+    protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
         // Parse dto
         const dto = CreateUserDto.build(req.body);
 

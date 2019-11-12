@@ -1,11 +1,10 @@
 import bodyParser from "body-parser";
 import cors from "cors";
-import express, { Express, NextFunction, Request, Response } from "express";
+import express, { Express } from "express";
 import { DatabaseConfig, ServerConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 import { ErrorHandler } from "./ErrorHandler";
-import { ConflictError, HttpError } from "./HttpError";
 import UserRouteHandlerCollection from "./users";
 
 export class Application {

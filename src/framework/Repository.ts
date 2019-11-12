@@ -1,4 +1,4 @@
-import { Database } from "../lib/database";
+import { Database } from "../../lib/database";
 
 export abstract class Repository<T> {
     protected abstract tableName: string;

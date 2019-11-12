@@ -1,7 +1,7 @@
 import { Express } from "express";
-import { Database } from "../lib/database";
-import { Logger } from "../lib/logger";
-import { Application } from "./Application";
+import { Database } from "../../lib/database";
+import { Logger } from "../../lib/logger";
+import { Application } from "../Application";
 
 export abstract class RouteHandlerCollection {
     protected readonly database: Database;

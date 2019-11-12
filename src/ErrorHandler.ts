@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { Application } from "./Application";
-import { HttpError } from "./HttpError";
-import { HttpResponder } from "./HttpResponder";
+import { HttpError } from "./framework/HttpError";
+import { HttpResponder } from "./framework/HttpResponder";
 
 export class ErrorHandler extends HttpResponder {
     private app: Application;

@@ -1,5 +1,5 @@
-import { RouteHandlerCollection } from "../RouteHandlerCollection";
-import { CreateUserHandler } from "./CreateUserHandler";
+import { RouteHandlerCollection } from "../framework/RouteHandlerCollection";
+import { CreateUserHandler } from "./create/CreateUserHandler";
 import { UserRepository } from "./UserRepository";
 
 export class UserRouteHandlerCollection extends RouteHandlerCollection {

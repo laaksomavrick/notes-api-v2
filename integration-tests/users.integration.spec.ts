@@ -13,7 +13,6 @@ describe("users", () => {
             const response = await request(app)
                 .post("/users")
                 .send(payload);
-            console.log(response);
             expect(response.status).toBe(200);
             expect(response.body.resource.user).toBeDefined();
             done();

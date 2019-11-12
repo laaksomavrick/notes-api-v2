@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
-import { Repository } from "../Repository";
-import { CreateUserDto } from "./CreateUserDto";
+import { Repository } from "../framework/Repository";
+import { CreateUserDto } from "./create/CreateUserDto";
 import { User } from "./User";
 
 export class UserRepository extends Repository<User> {

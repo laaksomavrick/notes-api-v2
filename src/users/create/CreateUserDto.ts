@@ -1,4 +1,4 @@
-import { Dto } from "../Dto";
+import { Dto } from "../../framework/Dto";
 
 export class CreateUserDto extends Dto {
     public email: string;

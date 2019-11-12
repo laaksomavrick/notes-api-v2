@@ -1,6 +1,6 @@
 import bcrypt from "bcrypt";
 import { Repository } from "../framework/Repository";
-import { CreateUserDto } from "./create/CreateUserDto";
+import { CreateUserDto } from "./CreateUserDto";
 import { User } from "./User";
 
 export class UserRepository extends Repository<User> {
@@ -10,6 +10,24 @@ export class UserRepository extends Repository<User> {
         const { rows } = await this.database.query(
             `
             SELECT id, email, created_at, updated_at
+            FROM users
+            WHERE email = $1`,
+            [email],
+        );
+        const [row] = rows;
+
+        if (row) {
+            return this.parseRowToType(row);
+        } else {
+            return undefined;
+        }
+    }
+
+    // TODO refactor
+    public async findByEmailWithPassword(email: string): Promise<User | undefined> {
+        const { rows } = await this.database.query(
+            `
+            SELECT id, email, password, created_at, updated_at
             FROM users
             WHERE email = $1`,
             [email],

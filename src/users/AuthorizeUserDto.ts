@@ -1,6 +1,6 @@
-import { Dto } from "../../framework/Dto";
+import { Dto } from "../framework/Dto";
 
-export class CreateUserDto extends Dto {
+export class AuthorizeUserDto extends Dto {
     public email: string;
 
     public password: string;
@@ -12,28 +12,28 @@ export class CreateUserDto extends Dto {
     }
 
     // tslint:disable-next-line:no-any
-    public static build(body: any): CreateUserDto | undefined {
+    public static build(body: any): AuthorizeUserDto | undefined {
         if (body == null) {
             return undefined;
         }
 
-        if (body.user == null) {
+        if (body.auth == null) {
             return undefined;
         }
 
-        const emailOk = body.user.email != null;
+        const emailOk = body.auth.email != null;
 
         if (!emailOk) {
             return undefined;
         }
 
-        const passwordOk = body.user.password != null;
+        const passwordOk = body.auth.password != null;
 
         if (!passwordOk) {
             return undefined;
         }
 
-        return new CreateUserDto(body.user.email, body.user.password);
+        return new AuthorizeUserDto(body.auth.email, body.auth.password);
     }
 
     public isValid(): boolean {

@@ -1,7 +1,7 @@
 import bodyParser from "body-parser";
 import cors from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
-import { ServerConfig } from "../lib/config";
+import { DatabaseConfig, ServerConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 import { ErrorHandler } from "./ErrorHandler";
@@ -22,6 +22,13 @@ export class Application {
         this.database = database;
         this.config = config;
         this.buildApp();
+    }
+
+    public static build(): Application {
+        const databaseConfig = new DatabaseConfig();
+        const database = new Database(databaseConfig);
+        const serverConfig = new ServerConfig();
+        return new Application(database, serverConfig);
     }
 
     public async serve(): Promise<void> {

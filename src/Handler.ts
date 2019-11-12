@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { HttpResponder } from "./HttpResponder";
 
-type HandlerFn = (req: Request, res: Response, next: NextFunction) => Promise<void> | void;
+export type HandlerFn = (req: Request, res: Response, next: NextFunction) => Promise<void> | void;
 
 export abstract class Handler extends HttpResponder {
     protected abstract handle(

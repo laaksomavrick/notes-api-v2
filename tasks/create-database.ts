@@ -18,6 +18,7 @@ import { LoggerFactory } from "../lib/logger";
         await postgresDb.init();
 
         // TODO: check that db doesn't already exist, fail gracefully if so
+        // TODO: differentiate between dev and test
 
         await postgresDb.query("CREATE DATABASE notes;");
 

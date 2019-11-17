@@ -8,13 +8,16 @@ const MIGRATIONS_DIRECTORY = path.join(process.cwd(), "migrations");
 
 (async (): Promise<void> => {
     const logger = LoggerFactory.getLogger();
+    const dbName = "notes";
+
     let notesDb: Database;
+
     try {
         logger.info("running migrations");
 
         // TODO: refactor config into lib/config alongside src/index.ts
         notesDb = new Database({
-            database: "notes",
+            database: dbName,
             host: "localhost",
             password: undefined,
             port: 5432,
@@ -22,6 +25,7 @@ const MIGRATIONS_DIRECTORY = path.join(process.cwd(), "migrations");
         });
 
         const filenames = await fs.promises.readdir(MIGRATIONS_DIRECTORY);
+        logger.info("filenames", filenames);
         const migrationsInFolder = filenames.map((filename: string) => ({
             filename,
             hash: crypto

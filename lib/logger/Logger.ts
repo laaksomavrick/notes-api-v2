@@ -16,7 +16,10 @@ export class Logger {
 
     // tslint:disable-next-line:no-any
     public info(message: string, ...meta: any[]): void {
-        this.logger.info(message, meta);
+        // TODO: configure this log level via winston?
+        if (process.env.NODE_ENV !== "test") {
+            this.logger.info(message, meta);
+        }
     }
 
     // tslint:disable-next-line:no-any

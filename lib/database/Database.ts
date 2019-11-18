@@ -1,4 +1,4 @@
-import { Pool, PoolClient, PoolConfig, QueryResult } from "pg";
+import { Pool, PoolClient, QueryResult } from "pg";
 import { DatabaseConfig } from "../config";
 import { LoggerFactory } from "../logger";
 
@@ -60,5 +60,17 @@ export class Database {
     public async disconnect(): Promise<void> {
         // @ts-ignore
         return this.client.release();
+    }
+
+    public async truncate(tables: string[]): Promise<void> {
+        if (tables.length === 0) {
+            throw new Error("Tables must have at least one entry");
+        } else if (tables.length === 1) {
+            const [table] = tables;
+            await this.query(`TRUNCATE TABLE ${table} CASCADE`);
+        } else {
+            const tablesString = tables.join(",");
+            await this.query(`TRUNCATE TABLES ${tablesString} CASCADE`);
+        }
     }
 }

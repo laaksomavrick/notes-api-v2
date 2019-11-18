@@ -12,6 +12,10 @@ describe("auth", () => {
     let email: string;
     let password: string;
 
+    afterAll(async () => {
+        await application.database.truncate(["users"]);
+    });
+
     beforeAll(async () => {
         email = faker.internet.email(faker.random.word());
         password = faker.random.uuid();

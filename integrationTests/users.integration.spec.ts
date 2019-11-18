@@ -5,7 +5,12 @@ import { Application } from "../src/Application";
 // TODO: clear database between runs
 
 describe("users", () => {
-    const app = Application.build().server;
+    const application = Application.build();
+    const app = application.server;
+
+    afterAll(async () => {
+        await application.database.truncate(["users"]);
+    });
 
     describe("POST /users", () => {
         it("can create a user", async (done: jest.DoneCallback) => {

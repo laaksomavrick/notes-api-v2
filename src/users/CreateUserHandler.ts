@@ -7,13 +7,11 @@ import { UserRepository } from "./UserRepository";
 export class CreateUserHandler extends Handler {
     private readonly userRepository: UserRepository;
 
+    protected readonly handlers = [this.handle.bind(this)];
+
     constructor(userRepository: UserRepository) {
         super();
         this.userRepository = userRepository;
-    }
-
-    public getHandler(): (req: Request, res: Response, next: NextFunction) => void {
-        return this.handleErrors(this.handle.bind(this));
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {

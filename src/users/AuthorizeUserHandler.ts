@@ -17,14 +17,12 @@ export class AuthorizeUserHandler extends Handler {
 
     private readonly config: ServerConfig;
 
+    protected readonly handlers = [this.handle.bind(this)];
+
     constructor(userRepository: UserRepository, config: ServerConfig) {
         super();
         this.userRepository = userRepository;
         this.config = config;
-    }
-
-    public getHandler(): (req: Request, res: Response, next: NextFunction) => void {
-        return this.handleErrors(this.handle.bind(this));
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -56,8 +54,7 @@ export class AuthorizeUserHandler extends Handler {
             throw new ForbiddenError();
         }
 
-        // todo store these
-        // todo service for signing and checking against stored
+        // todo expiry + refresh logic in another handler
         const token = sign({ id: user.id }, this.config.jwtSecret);
 
         this.httpOk(res, { token });

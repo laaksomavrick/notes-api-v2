@@ -1,6 +1,7 @@
 import { RouteHandlerCollection } from "../framework/RouteHandlerCollection";
 import { AuthorizeUserHandler } from "./AuthorizeUserHandler";
 import { CreateUserHandler } from "./CreateUserHandler";
+import { GetMeHandler } from "./GetMeHandler";
 import { UserRepository } from "./UserRepository";
 
 export class UserRouteHandlerCollection extends RouteHandlerCollection {
@@ -13,7 +14,10 @@ export class UserRouteHandlerCollection extends RouteHandlerCollection {
 
         const authorizeUserHandler = new AuthorizeUserHandler(userRepository, config);
 
-        app.post("/users", createUserHandler.getHandler());
-        app.post("/auth", authorizeUserHandler.getHandler());
+        const getMeHandler = new GetMeHandler(userRepository);
+
+        app.post("/users", createUserHandler.getHandlers());
+        app.post("/auth", authorizeUserHandler.getHandlers());
+        app.get("/me", getMeHandler.getHandlers());
     }
 }

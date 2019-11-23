@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { Handler } from "../framework/Handler";
 import { BadRequestError, UnprocessableEntityError } from "../framework/HttpError";
-import { CreateFolderDto } from "./CreateFolderDto";
+import { PaginatedResourceDto } from "../framework/PaginatedResourceDto";
 import { FolderRepository } from "./FolderRepository";
 
-export class CreateFolderHandler extends Handler {
+export class GetFoldersHandler extends Handler {
     private readonly folderRepository: FolderRepository;
 
     protected readonly handlers = [this.requireAuth(), this.handle.bind(this)];
@@ -19,22 +19,21 @@ export class CreateFolderHandler extends Handler {
         const userId = this.getUserId(req);
 
         // Parse dto
-        const dto = CreateFolderDto.build(req.body);
+        const dto = PaginatedResourceDto.build(req.body);
 
         if (!dto) {
             throw new BadRequestError();
         }
 
-        // Check that the dto is valid
         const valid = dto.isValid();
 
         if (!valid) {
             throw new UnprocessableEntityError();
         }
 
-        // Create the folder
-        const folder = await this.folderRepository.create(dto, userId);
+        // Retrieve folder page
+        const folders = await this.folderRepository.getAllFoldersForUser(dto, userId);
 
-        this.httpOk(res, { folder });
+        this.httpOk(res, { folders });
     }
 }

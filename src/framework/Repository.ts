@@ -1,5 +1,11 @@
 import { Database } from "../../lib/database";
 import { LoggerFactory } from "../../lib/logger";
+import { PaginatedResourceDto } from "./PaginatedResourceDto";
+
+export interface IWhereClause {
+    field: string;
+    value: string | number;
+}
 
 export abstract class Repository<T> {
     protected abstract tableName: string;
@@ -14,6 +20,50 @@ export abstract class Repository<T> {
 
     // tslint:disable-next-line:no-any
     protected abstract parseRowToType(row: any): T;
+
+    public async paginatedFindAll(
+        dto: PaginatedResourceDto,
+        fields?: string[],
+        wheres?: IWhereClause[],
+    ): Promise<T[]> {
+        const values = [];
+        const limit = dto.size;
+        const offset = dto.page * limit;
+        const fieldSelection = fields ? fields.join(",") : "*";
+
+        // TODO: extract where clause logic out
+        let whereClause = "";
+
+        if (wheres) {
+            for (const [i, where] of wheres.entries()) {
+                const j = i + 1;
+                if (i === 0) {
+                    whereClause = `WHERE ${where.field} = $${j}`;
+                } else {
+                    whereClause = `${whereClause} AND ${where.field} = $${j}`;
+                }
+                values.push(where.value);
+            }
+        }
+
+        const limitIndex = values.length + 1;
+        const offsetIndex = limitIndex + 1;
+
+        const queryResult = await this.database.query(
+            `
+            SELECT ${fieldSelection}
+            FROM ${this.tableName}
+            ${whereClause}
+            LIMIT $${limitIndex}
+            OFFSET $${offsetIndex}
+            `,
+            [...values, limit, offset],
+        );
+
+        const rows = queryResult.rows;
+        // tslint:disable-next-line:no-any
+        return rows.map((row: any) => this.parseRowToType(row));
+    }
 
     public async findById(id: number, fields?: string[]): Promise<T | undefined> {
         const fieldSelection = fields ? fields.join(",") : "*";

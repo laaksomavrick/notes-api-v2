@@ -1,6 +1,7 @@
 import { RouteHandlerCollection } from "../framework/RouteHandlerCollection";
 import { CreateFolderHandler } from "./CreateFolderHandler";
 import { FolderRepository } from "./FolderRepository";
+import { GetFoldersHandler } from "./GetFoldersHandler";
 
 export class FolderRouteHandlerCollection extends RouteHandlerCollection {
     public build(): void {
@@ -9,7 +10,9 @@ export class FolderRouteHandlerCollection extends RouteHandlerCollection {
         const folderRepository = new FolderRepository(database);
 
         const createFolderHandler = new CreateFolderHandler(folderRepository);
+        const getFoldersHandler = new GetFoldersHandler(folderRepository);
 
         app.post("/folders", createFolderHandler.getHandlers());
+        app.get("/folders", getFoldersHandler.getHandlers());
     }
 }

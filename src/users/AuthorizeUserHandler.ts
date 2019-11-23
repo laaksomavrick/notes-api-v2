@@ -12,6 +12,14 @@ import {
 import { AuthorizeUserDto } from "./AuthorizeUserDto";
 import { UserRepository } from "./UserRepository";
 
+export async function authorize(candidate: string, hash: string): Promise<boolean> {
+    return bcrypt.compare(candidate, hash);
+}
+
+export async function createJwt(id: number, secret: string): Promise<string> {
+    return sign({ id }, secret);
+}
+
 export class AuthorizeUserHandler extends Handler {
     private readonly userRepository: UserRepository;
 
@@ -48,14 +56,14 @@ export class AuthorizeUserHandler extends Handler {
         }
 
         // Check that the password matches
-        const authorized = await bcrypt.compare(dto.password, user.password);
+        const authorized = await authorize(dto.password, user.password);
 
         if (!authorized) {
             throw new ForbiddenError();
         }
 
         // todo expiry + refresh logic in another handler
-        const token = sign({ id: user.id }, this.config.jwtSecret);
+        const token = await createJwt(user.id, this.config.jwtSecret);
 
         this.httpOk(res, { token });
     }

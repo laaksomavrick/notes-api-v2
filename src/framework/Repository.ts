@@ -1,9 +1,12 @@
 import { Database } from "../../lib/database";
+import { LoggerFactory } from "../../lib/logger";
 
 export abstract class Repository<T> {
     protected abstract tableName: string;
 
     protected readonly database: Database;
+
+    protected readonly logger = LoggerFactory.getLogger();
 
     constructor(database: Database) {
         this.database = database;

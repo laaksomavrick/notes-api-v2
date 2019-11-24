@@ -76,8 +76,12 @@ describe("folders", () => {
         });
 
         it("fails creating a folder for an invalid request ", async (done: jest.DoneCallback) => {
+            const longString = Array.from(Array(32))
+                // tslint:disable-next-line:typedef
+                .map(_ => "A")
+                .join("");
             const payloadTooShort = { folder: { name: "" } };
-            const payloadTooLong = { folder: { name: faker.lorem.text(33) } };
+            const payloadTooLong = { folder: { name: longString } };
             const payloads = [payloadTooLong, payloadTooShort];
 
             for (const payload of payloads) {
@@ -112,6 +116,8 @@ describe("folders", () => {
             expect(response.status).toBe(200);
             expect(response.body.resource.folders).toBeDefined();
             expect(response.body.resource.folders.length).toBe(1);
+            expect(response.body.paginate).toBeDefined();
+            expect(response.body.paginate.remainingPages).toBe(0);
             done();
         });
 

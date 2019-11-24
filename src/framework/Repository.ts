@@ -7,6 +7,11 @@ export interface IWhereClause {
     value: string | number;
 }
 
+export interface IPaginatedQueryResponse<T> {
+    resource: T[];
+    remainingPages: number;
+}
+
 export abstract class Repository<T> {
     protected abstract tableName: string;
 
@@ -25,7 +30,7 @@ export abstract class Repository<T> {
         dto: PaginatedResourceDto,
         fields?: string[],
         wheres?: IWhereClause[],
-    ): Promise<T[]> {
+    ): Promise<IPaginatedQueryResponse<T>> {
         const values = [];
         const limit = dto.size;
         const offset = dto.page * limit;
@@ -48,8 +53,7 @@ export abstract class Repository<T> {
 
         const limitIndex = values.length + 1;
         const offsetIndex = limitIndex + 1;
-
-        const queryResult = await this.database.query(
+        const resourceQueryResult = await this.database.query(
             `
             SELECT ${fieldSelection}
             FROM ${this.tableName}
@@ -60,9 +64,29 @@ export abstract class Repository<T> {
             [...values, limit, offset],
         );
 
-        const rows = queryResult.rows;
+        const rows = resourceQueryResult.rows;
         // tslint:disable-next-line:no-any
-        return rows.map((row: any) => this.parseRowToType(row));
+        const resource = rows.map((row: any) => this.parseRowToType(row));
+
+        const countQueryResult = await this.database.query(
+            `
+            SELECT COUNT(id)
+            FROM ${this.tableName}
+            ${whereClause}
+          `,
+            values,
+        );
+
+        const [countRow] = countQueryResult.rows;
+        const count = countRow.count;
+
+        let remainingPages = Math.floor(count / (limit * (offset + 1)));
+        remainingPages = remainingPages >= 0 ? remainingPages : 0;
+
+        return {
+            remainingPages,
+            resource,
+        };
     }
 
     public async findById(id: number, fields?: string[]): Promise<T | undefined> {

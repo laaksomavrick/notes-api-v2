@@ -1,5 +1,5 @@
 import { PaginatedResourceDto } from "../framework/PaginatedResourceDto";
-import { Repository } from "../framework/Repository";
+import { IPaginatedQueryResponse, Repository } from "../framework/Repository";
 import { CreateFolderDto } from "./CreateFolderDto";
 import { Folder } from "./Folder";
 
@@ -9,7 +9,7 @@ export class FolderRepository extends Repository<Folder> {
     public async getAllFoldersForUser(
         dto: PaginatedResourceDto,
         userId: number,
-    ): Promise<Folder[]> {
+    ): Promise<IPaginatedQueryResponse<Folder>> {
         return this.paginatedFindAll(
             dto,
             ["id", "name", "created_at", "updated_at"],

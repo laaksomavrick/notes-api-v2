@@ -32,8 +32,10 @@ export class GetFoldersHandler extends Handler {
         }
 
         // Retrieve folder page
-        const folders = await this.folderRepository.getAllFoldersForUser(dto, userId);
+        const result = await this.folderRepository.getAllFoldersForUser(dto, userId);
+        const folders = result.resource;
+        const remainingPages = result.remainingPages;
 
-        this.httpOk(res, { folders });
+        this.httpOk(res, { folders }, { remainingPages });
     }
 }

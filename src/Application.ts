@@ -5,7 +5,8 @@ import { DatabaseConfig, ServerConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 import { ErrorHandler } from "./ErrorHandler";
-import { FolderRouteHandlerCollection } from "./folders/FolderRouteHandlerCollection";
+import FolderRouteHandlerCollection from "./folders";
+import NoteRouteHandlerCollection from "./notes";
 import UserRouteHandlerCollection from "./users";
 
 export class Application {
@@ -48,8 +49,13 @@ export class Application {
 
         const userRouteHandlerCollection = new UserRouteHandlerCollection(this);
         const folderRouteHandlerCollection = new FolderRouteHandlerCollection(this);
+        const noteRouteHandlerCollection = new NoteRouteHandlerCollection(this);
 
-        const routeHandlerCollections = [userRouteHandlerCollection, folderRouteHandlerCollection];
+        const routeHandlerCollections = [
+            userRouteHandlerCollection,
+            folderRouteHandlerCollection,
+            noteRouteHandlerCollection,
+        ];
         for (const routeHandlerCollection of routeHandlerCollections) {
             routeHandlerCollection.build();
         }

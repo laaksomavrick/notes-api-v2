@@ -68,12 +68,13 @@ export class Database {
     public async truncate(tables: string[]): Promise<void> {
         if (tables.length === 0) {
             throw new Error("Tables must have at least one entry");
-        } else if (tables.length === 1) {
-            const [table] = tables;
-            await this.query(`TRUNCATE TABLE ${table} CASCADE`);
         } else {
-            const tablesString = tables.join(",");
-            await this.query(`TRUNCATE TABLES ${tablesString} CASCADE`);
+            const promises = [];
+            for (const table of tables) {
+                const query = this.query(`TRUNCATE TABLE ${table} CASCADE`);
+                promises.push(query);
+            }
+            await Promise.all(promises);
         }
     }
 }

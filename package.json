@@ -10,7 +10,8 @@
     "format": "prettier --write '**/*.ts'",
     "test": "jest --forceExit --runInBand",
     "db:init": "ts-node tasks/create-database.ts",
-    "db:migrate": "ts-node tasks/migrate-database.ts"
+    "db:migrate": "ts-node tasks/migrate-database.ts",
+    "db:seed": "ts-node tasks/seed-database.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",

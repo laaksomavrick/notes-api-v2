@@ -8,6 +8,8 @@ CREATE TABLE IF NOT EXISTS folders (
     FOREIGN KEY (user_id) REFERENCES users (id)
 );
 
+ALTER SEQUENCE folders_id_seq RESTART WITH 1;
+
 CREATE INDEX folders_idx_user_id ON folders (user_id);
 
 CREATE TRIGGER set_updated_at

@@ -13,6 +13,7 @@ describe("folders", () => {
     const config = application.config;
     const userRepo = new UserRepository(application.database);
     const folderRepo = new FolderRepository(application.database);
+    const validName = "abcdefgh";
 
     let jwt: string;
     let userId: number;
@@ -40,7 +41,7 @@ describe("folders", () => {
 
     describe("POST /folders", () => {
         it("can create a folder", async (done: jest.DoneCallback) => {
-            const payload = { folder: { name: faker.random.word() } };
+            const payload = { folder: { name: validName } };
             const response = await request(app)
                 .post("/folders")
                 .set({
@@ -53,7 +54,7 @@ describe("folders", () => {
         });
 
         it("fails creating a folder for an unauthorized request ", async (done: jest.DoneCallback) => {
-            const payload = { folder: { name: faker.random.word() } };
+            const payload = { folder: { name: validName } };
             const response = await request(app)
                 .post("/folders")
                 .send(payload);
@@ -87,6 +88,91 @@ describe("folders", () => {
             for (const payload of payloads) {
                 const response = await request(app)
                     .post("/folders")
+                    .set({
+                        Authorization: jwt,
+                    })
+                    .send(payload);
+                expect(response.status).toBe(422);
+                expect(response.body.error).toBeDefined();
+            }
+            done();
+        });
+    });
+
+    describe("PATCH /folders", () => {
+        let updateableFolderId: number;
+        let updateableFolderUrl: string;
+
+        beforeAll(async () => {
+            const createFolderDto = new CreateFolderDto(faker.random.word());
+            const folder = await folderRepo.create(createFolderDto, userId);
+            updateableFolderId = folder.id;
+            updateableFolderUrl = `/folders/${updateableFolderId}`;
+        });
+
+        it("can update a folder", async (done: jest.DoneCallback) => {
+            const newName = "qweqweqwe";
+            const payload = { folder: { name: newName } };
+            const response = await request(app)
+                .patch(updateableFolderUrl)
+                .set({
+                    Authorization: jwt,
+                })
+                .send(payload);
+            expect(response.status).toBe(200);
+            expect(response.body.resource.folder).toBeDefined();
+            expect(response.body.resource.folder.name).toBe(newName);
+            done();
+        });
+
+        it("fails updating a folder for an unauthorized request ", async (done: jest.DoneCallback) => {
+            const payload = { folder: { name: validName } };
+            const response = await request(app)
+                .patch(updateableFolderUrl)
+                .send(payload);
+            expect(response.status).toBe(401);
+            expect(response.body.error).toBeDefined();
+            done();
+        });
+
+        it("fails updating a folder that does not exist ", async (done: jest.DoneCallback) => {
+            const payload = { folder: { name: validName } };
+            const response = await request(app)
+                .patch(`/folders/${updateableFolderId + 1}`)
+                .set({
+                    Authorization: jwt,
+                })
+                .send(payload);
+            expect(response.status).toBe(404);
+            expect(response.body.error).toBeDefined();
+            done();
+        });
+
+        it("fails updating a folder for a malformed request ", async (done: jest.DoneCallback) => {
+            const payload = {};
+            const response = await request(app)
+                .patch(updateableFolderUrl)
+                .set({
+                    Authorization: jwt,
+                })
+                .send(payload);
+            expect(response.status).toBe(400);
+            expect(response.body.error).toBeDefined();
+            done();
+        });
+
+        it("fails updating a folder for an invalid request ", async (done: jest.DoneCallback) => {
+            const longString = Array.from(Array(32))
+                // tslint:disable-next-line:typedef
+                .map(_ => "A")
+                .join("");
+            const payloadTooShort = { folder: { name: "" } };
+            const payloadTooLong = { folder: { name: longString } };
+            const payloads = [payloadTooLong, payloadTooShort];
+
+            for (const payload of payloads) {
+                const response = await request(app)
+                    .patch(updateableFolderUrl)
                     .set({
                         Authorization: jwt,
                     })

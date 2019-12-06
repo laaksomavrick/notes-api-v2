@@ -72,4 +72,14 @@ export abstract class Handler extends HttpResponder {
             throw new UnauthorizedError();
         }
     }
+
+    protected getQueryParamId(req: Request, field: string): number | undefined {
+        const id = req.params[field];
+
+        if (id) {
+            return parseInt(id, 10);
+        }
+
+        return undefined;
+    }
 }

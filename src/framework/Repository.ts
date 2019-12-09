@@ -26,6 +26,39 @@ export abstract class Repository<T> {
     // tslint:disable-next-line:no-any
     protected abstract parseRowToType(row: any): T;
 
+    public async findAll(fields?: string[], wheres?: IWhereClause[]): Promise<T[]> {
+        const values = [];
+        const fieldSelection = fields ? fields.join(",") : "*";
+
+        // TODO: extract where clause logic out
+        let whereClause = "";
+
+        if (wheres) {
+            for (const [i, where] of wheres.entries()) {
+                const j = i + 1;
+                if (i === 0) {
+                    whereClause = `WHERE ${where.field} = $${j}`;
+                } else {
+                    whereClause = `${whereClause} AND ${where.field} = $${j}`;
+                }
+                values.push(where.value);
+            }
+        }
+
+        const resourceQueryResult = await this.database.query(
+            `
+            SELECT ${fieldSelection}
+            FROM ${this.tableName}
+            ${whereClause}
+            `,
+            [...values],
+        );
+
+        const rows = resourceQueryResult.rows;
+        // tslint:disable-next-line:no-any
+        return rows.map((row: any) => this.parseRowToType(row));
+    }
+
     public async paginatedFindAll(
         dto: PaginatedResourceDto,
         fields?: string[],

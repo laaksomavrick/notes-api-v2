@@ -1,7 +1,5 @@
 import { NextFunction, Request, Response } from "express";
 import { Handler } from "../framework/Handler";
-import { BadRequestError, UnprocessableEntityError } from "../framework/HttpError";
-import { PaginatedResourceDto } from "../framework/PaginatedResourceDto";
 import { FolderRepository } from "./FolderRepository";
 
 export class GetFoldersHandler extends Handler {
@@ -18,24 +16,9 @@ export class GetFoldersHandler extends Handler {
         // Get the userId
         const userId = this.getUserId(req);
 
-        // Parse dto
-        const dto = PaginatedResourceDto.build(req.body);
-
-        if (!dto) {
-            throw new BadRequestError();
-        }
-
-        const valid = dto.isValid();
-
-        if (!valid) {
-            throw new UnprocessableEntityError();
-        }
-
         // Retrieve folder page
-        const result = await this.folderRepository.getAllFoldersForUser(dto, userId);
-        const folders = result.resource;
-        const remainingPages = result.remainingPages;
+        const folders = await this.folderRepository.getAllFoldersForUser(userId);
 
-        this.httpOk(res, { folders }, { remainingPages });
+        this.httpOk(res, { folders });
     }
 }

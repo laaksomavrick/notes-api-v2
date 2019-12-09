@@ -192,53 +192,23 @@ describe("folders", () => {
         });
 
         it("can get folders belonging to a user", async (done: jest.DoneCallback) => {
-            const payload = { paginate: { page: 0, size: 5 } };
             const response = await request(app)
                 .get(`/folders`)
                 .set({
                     Authorization: jwt,
                 })
-                .send(payload);
+                .send();
             expect(response.status).toBe(200);
             expect(response.body.resource.folders).toBeDefined();
             expect(response.body.resource.folders.length).toBe(1);
-            expect(response.body.paginate).toBeDefined();
-            expect(response.body.paginate.remainingPages).toBe(0);
             done();
         });
 
         it("fails retrieving folders for an unauthorized user", async (done: jest.DoneCallback) => {
-            const payload = { paginate: { page: 0, size: 5 } };
             const response = await request(app)
                 .get(`/folders`)
-                .send(payload);
+                .send();
             expect(response.status).toBe(401);
-            expect(response.body.error).toBeDefined();
-            done();
-        });
-
-        it("fails retrieving folders for a malformed request", async (done: jest.DoneCallback) => {
-            const payload = {};
-            const response = await request(app)
-                .get(`/folders`)
-                .set({
-                    Authorization: jwt,
-                })
-                .send(payload);
-            expect(response.status).toBe(400);
-            expect(response.body.error).toBeDefined();
-            done();
-        });
-
-        it("fails retrieving folders for an invalid request", async (done: jest.DoneCallback) => {
-            const payload = { paginate: { page: 0, size: 999 } };
-            const response = await request(app)
-                .get(`/folders`)
-                .set({
-                    Authorization: jwt,
-                })
-                .send(payload);
-            expect(response.status).toBe(422);
             expect(response.body.error).toBeDefined();
             done();
         });

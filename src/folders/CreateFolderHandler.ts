@@ -15,6 +15,7 @@ export class CreateFolderHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        // TODO: limit # of folders to 50 (or some arbitrary number) per user
         // Get the userId
         const userId = this.getUserId(req);
 

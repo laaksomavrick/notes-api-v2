@@ -10,6 +10,7 @@ export class NoteRouteHandlerCollection extends RouteHandlerCollection {
 
         const createNoteHandler = new CreateNoteHandler(noteRepository);
 
+        // app.get("/notes?q=folderId=12", getNotesHandler.getHandlers());
         app.post("/notes", createNoteHandler.getHandlers());
     }
 }

@@ -27,23 +27,8 @@ export abstract class Repository<T> {
     protected abstract parseRowToType(row: any): T;
 
     public async findAll(fields?: string[], wheres?: IWhereClause[]): Promise<T[]> {
-        const values = [];
-        const fieldSelection = fields ? fields.join(",") : "*";
-
-        // TODO: extract where clause logic out
-        let whereClause = "";
-
-        if (wheres) {
-            for (const [i, where] of wheres.entries()) {
-                const j = i + 1;
-                if (i === 0) {
-                    whereClause = `WHERE ${where.field} = $${j}`;
-                } else {
-                    whereClause = `${whereClause} AND ${where.field} = $${j}`;
-                }
-                values.push(where.value);
-            }
-        }
+        const { values, whereClause } = this.getWhereClause(wheres);
+        const fieldSelection = this.getFieldSelection(fields);
 
         const resourceQueryResult = await this.database.query(
             `
@@ -64,25 +49,10 @@ export abstract class Repository<T> {
         fields?: string[],
         wheres?: IWhereClause[],
     ): Promise<IPaginatedQueryResponse<T>> {
-        const values = [];
+        const { values, whereClause } = this.getWhereClause(wheres);
+        const fieldSelection = this.getFieldSelection(fields);
         const limit = dto.size;
         const offset = dto.page * limit;
-        const fieldSelection = fields ? fields.join(",") : "*";
-
-        // TODO: extract where clause logic out
-        let whereClause = "";
-
-        if (wheres) {
-            for (const [i, where] of wheres.entries()) {
-                const j = i + 1;
-                if (i === 0) {
-                    whereClause = `WHERE ${where.field} = $${j}`;
-                } else {
-                    whereClause = `${whereClause} AND ${where.field} = $${j}`;
-                }
-                values.push(where.value);
-            }
-        }
 
         const limitIndex = values.length + 1;
         const offsetIndex = limitIndex + 1;
@@ -123,7 +93,7 @@ export abstract class Repository<T> {
     }
 
     public async findById(id: number, fields?: string[]): Promise<T | undefined> {
-        const fieldSelection = fields ? fields.join(",") : "*";
+        const fieldSelection = this.getFieldSelection(fields);
         const { rows } = await this.database.query(
             `
             SELECT ${fieldSelection}
@@ -148,5 +118,30 @@ export abstract class Repository<T> {
             // TODO: ugly
             return (found as unknown) as T;
         }
+    }
+
+    private getWhereClause(
+        wheres?: IWhereClause[],
+    ): { whereClause: string; values: Array<string | number> } {
+        const values = [];
+        let whereClause = "";
+
+        if (wheres) {
+            for (const [i, where] of wheres.entries()) {
+                const j = i + 1;
+                if (i === 0) {
+                    whereClause = `WHERE ${where.field} = $${j}`;
+                } else {
+                    whereClause = `${whereClause} AND ${where.field} = $${j}`;
+                }
+                values.push(where.value);
+            }
+        }
+
+        return { whereClause, values };
+    }
+
+    private getFieldSelection(fields?: string[]): string {
+        return fields ? fields.join(",") : "*";
     }
 }

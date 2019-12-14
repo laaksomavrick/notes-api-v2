@@ -16,7 +16,7 @@ export class UpdateFolderHandler extends Handler {
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
         // Get the folderId from the route
-        const folderId = this.getQueryParamId(req, "folderId");
+        const folderId = this.getParamId(req, "folderId");
 
         if (!folderId) {
             throw new BadRequestError();
@@ -30,7 +30,7 @@ export class UpdateFolderHandler extends Handler {
         }
 
         // Parse dto
-        const dto = UpdateFolderDto.build(req.body);
+        const dto = UpdateFolderDto.build(req);
 
         if (!dto) {
             throw new BadRequestError();

@@ -1,3 +1,4 @@
+import { Request } from "express";
 import { Dto } from "../framework/Dto";
 
 export class CreateNoteDto extends Dto {
@@ -15,7 +16,9 @@ export class CreateNoteDto extends Dto {
     }
 
     // tslint:disable-next-line:no-any
-    public static build(body: any): CreateNoteDto | undefined {
+    public static build(req: Request): CreateNoteDto | undefined {
+        const body = req.body;
+
         if (body == null) {
             return undefined;
         }

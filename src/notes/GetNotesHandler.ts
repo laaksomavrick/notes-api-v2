@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { Handler } from "../framework/Handler";
-import { BadRequestError, UnprocessableEntityError } from "../framework/HttpError";
-import { CreateNoteDto } from "./CreateNoteDto";
+import { BadRequestError } from "../framework/HttpError";
+import { GetNotesDto } from "./GetNotesDto";
 import { NoteRepository } from "./NoteRepository";
 
-export class CreateNoteHandler extends Handler {
+export class GetNotesHandler extends Handler {
     private readonly noteRepository: NoteRepository;
 
     protected readonly handlers = [this.requireAuth(), this.handle.bind(this)];
@@ -18,23 +18,16 @@ export class CreateNoteHandler extends Handler {
         // Get the userId
         const userId = this.getUserId(req);
 
-        // Parse dto
-        const dto = CreateNoteDto.build(req);
+        // Optionally, get the folderId if it exists (dto)
+        const dto = GetNotesDto.build(req);
 
         if (!dto) {
             throw new BadRequestError();
         }
 
-        // Check that the dto is valid
-        const valid = dto.isValid();
+        // Retrieve notes
+        const notes = await this.noteRepository.findAllNotes(dto, userId);
 
-        if (!valid) {
-            throw new UnprocessableEntityError();
-        }
-
-        // Create the folder
-        const note = await this.noteRepository.create(dto, userId);
-
-        this.httpOk(res, { note });
+        this.httpOk(res, { notes });
     }
 }

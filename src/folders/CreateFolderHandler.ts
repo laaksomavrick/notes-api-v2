@@ -20,7 +20,7 @@ export class CreateFolderHandler extends Handler {
         const userId = this.getUserId(req);
 
         // Parse dto
-        const dto = CreateFolderDto.build(req.body);
+        const dto = CreateFolderDto.build(req);
 
         if (!dto) {
             throw new BadRequestError();

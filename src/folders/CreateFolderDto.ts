@@ -1,3 +1,4 @@
+import { Request } from "express";
 import { Dto } from "../framework/Dto";
 
 export class CreateFolderDto extends Dto {
@@ -8,8 +9,9 @@ export class CreateFolderDto extends Dto {
         this.name = name;
     }
 
-    // tslint:disable-next-line:no-any
-    public static build(body: any): CreateFolderDto | undefined {
+    public static build(req: Request): CreateFolderDto | undefined {
+        const body = req.body;
+
         if (body == null) {
             return undefined;
         }

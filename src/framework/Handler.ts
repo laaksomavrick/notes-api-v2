@@ -73,7 +73,7 @@ export abstract class Handler extends HttpResponder {
         }
     }
 
-    protected getQueryParamId(req: Request, field: string): number | undefined {
+    protected getParamId(req: Request, field: string): number | undefined {
         const id = req.params[field];
 
         if (id) {

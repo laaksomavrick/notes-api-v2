@@ -4,7 +4,6 @@ import { Application } from "../src/Application";
 import { CreateFolderDto } from "../src/folders/CreateFolderDto";
 import { FolderRepository } from "../src/folders/FolderRepository";
 import { CreateNoteDto } from "../src/notes/CreateNoteDto";
-import { GetNotesDto } from "../src/notes/GetNotesDto";
 import { NoteRepository } from "../src/notes/NoteRepository";
 import { createJwt } from "../src/users/AuthorizeUserHandler";
 import { CreateUserDto } from "../src/users/CreateUserDto";
@@ -165,6 +164,72 @@ describe("notes", () => {
                 .get(`/notes`)
                 .send();
             expect(response.status).toBe(401);
+            expect(response.body.error).toBeDefined();
+            done();
+        });
+    });
+
+    describe("PATCH /notes", () => {
+        const validName = "aaaaaaaa";
+        const validContent = "aaaaaaaa";
+        let updateableNoteId: number;
+        let updateableNoteUrl: string;
+
+        beforeAll(async () => {
+            const createNoteDto = new CreateNoteDto("name", "content", folderId);
+            const note = await noteRepo.create(createNoteDto, userId);
+
+            updateableNoteId = note.id;
+            updateableNoteUrl = `/notes/${updateableNoteId}`;
+        });
+
+        it("can update a note", async (done: jest.DoneCallback) => {
+            const newName = "qweqweqwe";
+            const payload = { note: { name: newName, content: validContent, folderId } };
+            const response = await request(app)
+                .patch(updateableNoteUrl)
+                .set({
+                    Authorization: jwt,
+                })
+                .send(payload);
+            expect(response.status).toBe(200);
+            expect(response.body.resource.note).toBeDefined();
+            expect(response.body.resource.note.name).toBe(newName);
+            done();
+        });
+
+        it("fails updating a note for an unauthorized request ", async (done: jest.DoneCallback) => {
+            const payload = { note: { name: validName, content: validContent, folderId } };
+            const response = await request(app)
+                .patch(updateableNoteUrl)
+                .send(payload);
+            expect(response.status).toBe(401);
+            expect(response.body.error).toBeDefined();
+            done();
+        });
+
+        it("fails updating a note that does not exist ", async (done: jest.DoneCallback) => {
+            const payload = { note: { name: validName, content: validContent, folderId } };
+            const response = await request(app)
+                .patch(`/notes/${updateableNoteId + 1}`)
+                .set({
+                    Authorization: jwt,
+                })
+                .send(payload);
+            expect(response.status).toBe(404);
+            expect(response.body.error).toBeDefined();
+            done();
+        });
+
+        it("fails updating a note for a malformed request ", async (done: jest.DoneCallback) => {
+            const payload = {};
+            const response = await request(app)
+                .patch(updateableNoteUrl)
+                .set({
+                    Authorization: jwt,
+                })
+                .send(payload);
+            expect(response.status).toBe(400);
             expect(response.body.error).toBeDefined();
             done();
         });

@@ -1,7 +1,10 @@
+import { Folder } from "../folders/Folder";
+import { UpdateFolderDto } from "../folders/UpdateFolderDto";
 import { Repository } from "../framework/Repository";
 import { CreateNoteDto } from "./CreateNoteDto";
 import { GetNotesDto } from "./GetNotesDto";
 import { Note } from "./Note";
+import { UpdateNoteDto } from "./UpdateNoteDto";
 
 export class NoteRepository extends Repository<Note> {
     protected tableName = "notes";
@@ -38,6 +41,36 @@ export class NoteRepository extends Repository<Note> {
             "folder_id",
             "name",
             "content",
+            "created_at",
+            "updated_at",
+        ]);
+    }
+
+    public async update(dto: UpdateNoteDto, noteId: number): Promise<Note> {
+        const name = dto.name;
+        const content = dto.content;
+        const folderId = dto.folderId;
+
+        // TODO: generalize fields and where clause in repository
+        const queryResult = await this.database.query(
+            `
+            UPDATE notes
+            SET name = $1,
+                content = $2,
+                folder_id = $3
+            WHERE id = $4
+            RETURNING id`,
+            [name, content, folderId, noteId],
+        );
+
+        const [{ id }] = queryResult.rows;
+
+        return this.findByIdOrThrow(id, [
+            "id",
+            "user_id",
+            "name",
+            "content",
+            "folder_id",
             "created_at",
             "updated_at",
         ]);

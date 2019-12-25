@@ -1,5 +1,3 @@
-import { Folder } from "../folders/Folder";
-import { UpdateFolderDto } from "../folders/UpdateFolderDto";
 import { Repository } from "../framework/Repository";
 import { CreateNoteDto } from "./CreateNoteDto";
 import { GetNotesDto } from "./GetNotesDto";

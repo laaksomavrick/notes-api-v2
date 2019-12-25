@@ -51,6 +51,6 @@ export class CreateNoteDto extends Dto {
     }
 
     public isValid(): boolean {
-        return this.name.length > 0 && this.name.length < 32 && this.content.length >= 0;
+        return this.name.length > 0 && this.name.length < 32;
     }
 }

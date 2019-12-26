@@ -18,25 +18,39 @@ describe("notes", () => {
     const noteRepo = new NoteRepository(application.database);
 
     let jwt: string;
+    let secondJwt: string;
     let userId: number;
+    let secondUserId: number;
+
     let folderId: number;
 
     beforeAll(async () => {
         const email = faker.internet.email(faker.random.word());
+        const secondEmail = `${email}aaa`;
+
         const password = faker.random.uuid();
+
         const createUserDto = new CreateUserDto(email, password);
+        const secondCreateUserDto = new CreateUserDto(secondEmail, password);
 
         await userRepo.create(createUserDto);
-        const user = await userRepo.findByEmail(email);
+        await userRepo.create(secondCreateUserDto);
 
-        if (!user) {
+        const user = await userRepo.findByEmail(email);
+        const secondUser = await userRepo.findByEmail(secondEmail);
+
+        if (!user || !secondUser) {
             throw new Error("No user found, something went terribly wrong.");
         }
 
         userId = user.id;
+        secondUserId = secondUser.id;
 
         jwt = await createJwt(user.id, config.jwtSecret);
         jwt = `Bearer ${jwt}`;
+
+        secondJwt = await createJwt(secondUser.id, config.jwtSecret);
+        secondJwt = `Bearer ${secondJwt}`;
 
         const createFolderDto = new CreateFolderDto(faker.random.word());
         const folder = await folderRepo.create(createFolderDto, userId);
@@ -231,6 +245,50 @@ describe("notes", () => {
                 .send(payload);
             expect(response.status).toBe(400);
             expect(response.body.error).toBeDefined();
+            done();
+        });
+    });
+
+    describe("DELETE /notes", () => {
+        let noteId: number;
+
+        beforeEach(async () => {
+            await application.database.truncate(["notes"]);
+            const createNoteDto = new CreateNoteDto("name", "content", folderId);
+            const note = await noteRepo.create(createNoteDto, userId);
+            noteId = note.id;
+        });
+
+        it("it can delete a note", async (done: jest.DoneCallback) => {
+            const response = await request(app)
+                .delete(`/notes/${noteId}`)
+                .set({
+                    Authorization: jwt,
+                })
+                .send();
+            expect(response.status).toBe(200);
+            done();
+        });
+
+        it("it cannot delete a note that doesn't exist", async (done: jest.DoneCallback) => {
+            const response = await request(app)
+                .delete(`/notes/999`)
+                .set({
+                    Authorization: jwt,
+                })
+                .send();
+            expect(response.status).toBe(404);
+            done();
+        });
+
+        it("it cannot delete a note that doesn't belong to the user", async (done: jest.DoneCallback) => {
+            const response = await request(app)
+                .delete(`/notes/${noteId}`)
+                .set({
+                    Authorization: secondJwt,
+                })
+                .send();
+            expect(response.status).toBe(404);
             done();
         });
     });

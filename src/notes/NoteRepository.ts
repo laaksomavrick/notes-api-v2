@@ -74,6 +74,17 @@ export class NoteRepository extends Repository<Note> {
         ]);
     }
 
+    public async delete(noteId: number): Promise<void> {
+        await this.database.query(
+            `
+                    UPDATE notes
+                    SET deleted = true
+                    WHERE id = $1
+                      AND deleted = false RETURNING id`,
+            [noteId],
+        );
+    }
+
     // tslint:disable-next-line:no-any
     protected parseRowToType(row: any): Note {
         return new Note(

@@ -16,14 +16,17 @@ export class UpdateFolderHandler extends Handler {
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
         // Get the folderId from the route
+        const userId = this.getUserId(req);
         const folderId = this.getParamId(req, "folderId");
 
         if (!folderId) {
             throw new BadRequestError();
         }
 
-        // Verify the folder exists
-        const folderExists = await this.folderRepository.findById(folderId, ["id"]);
+        // Verify the folder exists and belongs to the user
+        const folderExists = await this.folderRepository.findByIdAndUserId(folderId, userId, [
+            "id",
+        ]);
 
         if (!folderExists) {
             throw new NotFoundError();

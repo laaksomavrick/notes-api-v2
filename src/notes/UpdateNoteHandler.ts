@@ -16,14 +16,15 @@ export class UpdateNoteHandler extends Handler {
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
         // Get the noteId from the route
+        const userId = this.getUserId(req);
         const noteId = this.getParamId(req, "noteId");
 
         if (!noteId) {
             throw new BadRequestError();
         }
 
-        // Verify the note exists
-        const noteExists = await this.noteRepository.findById(noteId, ["id"]);
+        // Verify the note exists and belongs to the user
+        const noteExists = await this.noteRepository.findByIdAndUserId(noteId, userId, ["id"]);
 
         if (!noteExists) {
             throw new NotFoundError();

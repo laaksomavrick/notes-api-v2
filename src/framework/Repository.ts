@@ -4,7 +4,7 @@ import { PaginatedResourceDto } from "./PaginatedResourceDto";
 
 export interface IWhereClause {
     field: string;
-    value: string | number;
+    value: string | number | boolean;
 }
 
 export interface IPaginatedQueryResponse<T> {
@@ -122,7 +122,7 @@ export abstract class Repository<T> {
 
     private getWhereClause(
         wheres?: IWhereClause[],
-    ): { whereClause: string; values: Array<string | number> } {
+    ): { whereClause: string; values: Array<string | number | boolean> } {
         const values = [];
         let whereClause = "";
 

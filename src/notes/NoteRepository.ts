@@ -9,7 +9,7 @@ export class NoteRepository extends Repository<Note> {
 
     public async findAllNotes(dto: GetNotesDto, userId: number): Promise<Note[]> {
         const folderId = dto.folderId;
-        const wheres = [{ field: "user_id", value: userId }];
+        const wheres = [{ field: "user_id", value: userId }, { field: "deleted", value: false }];
 
         if (folderId) {
             wheres.push({ field: "folder_id", value: folderId });
@@ -82,6 +82,7 @@ export class NoteRepository extends Repository<Note> {
             row.folder_id,
             row.name,
             row.content,
+            row.deleted,
             new Date(row.created_at),
             new Date(row.updated_at),
         );

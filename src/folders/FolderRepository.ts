@@ -9,7 +9,7 @@ export class FolderRepository extends Repository<Folder> {
     public async getAllFoldersForUser(userId: number): Promise<Folder[]> {
         return this.findAll(
             ["id", "name", "created_at", "updated_at"],
-            [{ field: "user_id", value: userId }],
+            [{ field: "user_id", value: userId }, { field: "deleted", value: false }],
         );
     }
 
@@ -53,6 +53,7 @@ export class FolderRepository extends Repository<Folder> {
             row.id,
             row.user_id,
             row.name,
+            row.deleted,
             new Date(row.created_at),
             new Date(row.updated_at),
         );

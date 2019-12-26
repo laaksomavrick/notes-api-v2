@@ -5,14 +5,24 @@ export class Folder {
 
     public name: string;
 
+    public deleted: boolean;
+
     public createdAt: Date;
 
     public updatedAt: Date;
 
-    constructor(id: number, userId: number, name: string, createdAt: Date, updatedAt: Date) {
+    constructor(
+        id: number,
+        userId: number,
+        name: string,
+        deleted: boolean,
+        createdAt: Date,
+        updatedAt: Date,
+    ) {
         this.id = id;
         this.userId = userId;
         this.name = name;
+        this.deleted = deleted;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }

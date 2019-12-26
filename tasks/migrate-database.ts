@@ -70,7 +70,7 @@ const MIGRATIONS_DIRECTORY = path.join(process.cwd(), "migrations");
             logger.info("ran migration", filename);
         }
     } catch (e) {
-        logger.error("something went wrong", e);
+        logger.error("something went wrong", e.toString());
         process.exit(1);
     } finally {
         logger.info("done");

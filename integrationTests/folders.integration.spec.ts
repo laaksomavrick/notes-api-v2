@@ -16,23 +16,33 @@ describe("folders", () => {
     const validName = "abcdefgh";
 
     let jwt: string;
+    let secondJwt: string;
     let userId: number;
+    let secondUserId: number;
 
     beforeAll(async () => {
         const email = faker.internet.email(faker.random.word());
+        const secondEmail = `${email}aaa`;
         const password = faker.random.uuid();
         const createUserDto = new CreateUserDto(email, password);
+        const secondCreateUserDto = new CreateUserDto(secondEmail, password);
         await userRepo.create(createUserDto);
+        await userRepo.create(secondCreateUserDto);
         const user = await userRepo.findByEmail(email);
+        const secondUser = await userRepo.findByEmail(secondEmail);
 
-        if (!user) {
+        if (!user || !secondUser) {
             throw new Error("No user found, something went terribly wrong.");
         }
 
         userId = user.id;
+        secondUserId = secondUser.id;
 
         jwt = await createJwt(user.id, config.jwtSecret);
         jwt = `Bearer ${jwt}`;
+
+        secondJwt = await createJwt(secondUser.id, config.jwtSecret);
+        secondJwt = `Bearer ${secondJwt}`;
     });
 
     afterAll(async () => {
@@ -210,6 +220,50 @@ describe("folders", () => {
                 .send();
             expect(response.status).toBe(401);
             expect(response.body.error).toBeDefined();
+            done();
+        });
+    });
+
+    describe("DELETE /folders", () => {
+        let folderId: number;
+
+        beforeEach(async () => {
+            await application.database.truncate(["folders"]);
+            const createFolderDto = new CreateFolderDto(faker.random.word());
+            const folder = await folderRepo.create(createFolderDto, userId);
+            folderId = folder.id;
+        });
+
+        it("it can delete a folder", async (done: jest.DoneCallback) => {
+            const response = await request(app)
+                .delete(`/folders/${folderId}`)
+                .set({
+                    Authorization: jwt,
+                })
+                .send();
+            expect(response.status).toBe(200);
+            done();
+        });
+
+        it("it cannot delete a folder that doesn't exist", async (done: jest.DoneCallback) => {
+            const response = await request(app)
+                .delete(`/folders/999`)
+                .set({
+                    Authorization: jwt,
+                })
+                .send();
+            expect(response.status).toBe(404);
+            done();
+        });
+
+        it("it cannot delete a folder that doesn't belong to the user", async (done: jest.DoneCallback) => {
+            const response = await request(app)
+                .delete(`/folders/${folderId}`)
+                .set({
+                    Authorization: secondJwt,
+                })
+                .send();
+            expect(response.status).toBe(404);
             done();
         });
     });

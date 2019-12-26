@@ -110,6 +110,30 @@ export abstract class Repository<T> {
         }
     }
 
+    public async findByIdAndUserId(
+        id: number,
+        userId: number,
+        fields?: string[],
+    ): Promise<T | undefined> {
+        const fieldSelection = this.getFieldSelection(fields);
+        const { rows } = await this.database.query(
+            `
+            SELECT ${fieldSelection}
+            FROM ${this.tableName}
+            WHERE id = $1
+            AND user_id = $2
+            `,
+            [id, userId],
+        );
+        const [row] = rows;
+
+        if (row) {
+            return this.parseRowToType(row);
+        } else {
+            return undefined;
+        }
+    }
+
     public async findByIdOrThrow(id: number, fields?: string[]): Promise<T> {
         const found = this.findById(id, fields);
         if (found === undefined) {

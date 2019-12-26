@@ -47,6 +47,18 @@ export class FolderRepository extends Repository<Folder> {
         return this.findByIdOrThrow(id, ["id", "user_id", "name", "created_at", "updated_at"]);
     }
 
+    public async delete(folderId: number): Promise<void> {
+        await this.database.query(
+            `
+            UPDATE folders
+            SET deleted = true
+            WHERE id = $1
+            AND deleted = false
+            RETURNING id`,
+            [folderId],
+        );
+    }
+
     // tslint:disable-next-line:no-any
     protected parseRowToType(row: any): Folder {
         return new Folder(

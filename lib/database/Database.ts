@@ -31,7 +31,7 @@ export class Database {
             await this.init();
         }
         query = stripIndent(query);
-        this.logger.info("executing query", query, values);
+        this.logger.info("executing query", { query, values });
         // @ts-ignore
         return this.client.query(query, values);
     }

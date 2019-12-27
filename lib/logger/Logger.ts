@@ -6,9 +6,11 @@ export class Logger {
     constructor() {
         this.logger = winston.createLogger({
             format: winston.format.combine(
-                winston.format.colorize(),
-                winston.format.align(),
-                winston.format.simple(),
+                // winston.format.colorize(),
+                // winston.format.align(),
+                // winston.format.simple(),
+                winston.format.timestamp(),
+                winston.format.prettyPrint(),
             ),
             transports: [new winston.transports.Console()],
         });
@@ -16,19 +18,18 @@ export class Logger {
 
     // tslint:disable-next-line:no-any
     public info(message: string, ...meta: any[]): void {
-        // TODO: configure this log level via winston?
         if (process.env.NODE_ENV !== "test") {
-            this.logger.info(message, meta);
+            this.logger.info(message, ...meta);
         }
     }
 
     // tslint:disable-next-line:no-any
     public debug(message: string, ...meta: any[]): void {
-        this.logger.debug(message, meta);
+        this.logger.debug(message, ...meta);
     }
 
     // tslint:disable-next-line:no-any
     public error(message: string, ...meta: any[]): void {
-        this.logger.error(message, meta);
+        this.logger.error(message, ...meta);
     }
 }

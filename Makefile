@@ -23,3 +23,13 @@ db-migrate:
 
 db-seed:
 	@yarn db:seed
+
+deploy-circleci-ecr:
+	@aws cloudformation create-stack \
+	--stack-name circleciecr \
+	--template-body file://cloudformation/circleci_ecr.yaml \
+	--capabilities CAPABILITY_NAMED_IAM
+
+destroy-circleci-ecr:
+	@aws cloudformation delete-stack \
+	--stack-name circleciecr

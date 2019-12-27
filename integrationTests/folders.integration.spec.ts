@@ -158,6 +158,19 @@ describe("folders", () => {
             done();
         });
 
+        it("fails updating a folder that belongs to another user", async (done: jest.DoneCallback) => {
+            const payload = { folder: { name: validName } };
+            const response = await request(app)
+                .patch(`/folders/${updateableFolderId}`)
+                .set({
+                    Authorization: secondJwt,
+                })
+                .send(payload);
+            expect(response.status).toBe(404);
+            expect(response.body.error).toBeDefined();
+            done();
+        });
+
         it("fails updating a folder for a malformed request ", async (done: jest.DoneCallback) => {
             const payload = {};
             const response = await request(app)

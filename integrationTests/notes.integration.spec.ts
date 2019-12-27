@@ -235,6 +235,19 @@ describe("notes", () => {
             done();
         });
 
+        it("fails updating a note that belongs to another user", async (done: jest.DoneCallback) => {
+            const payload = { note: { name: validName, content: validContent, folderId } };
+            const response = await request(app)
+                .patch(`/notes/${updateableNoteId + 1}`)
+                .set({
+                    Authorization: secondJwt,
+                })
+                .send(payload);
+            expect(response.status).toBe(404);
+            expect(response.body.error).toBeDefined();
+            done();
+        });
+
         it("fails updating a note for a malformed request ", async (done: jest.DoneCallback) => {
             const payload = {};
             const response = await request(app)

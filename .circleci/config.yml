@@ -1,51 +1,49 @@
-# Javascript Node CircleCI 2.0 configuration file
-#
-# Check https://circleci.com/docs/2.0/language-javascript/ for more details
-#
-version: 2
+version: 2.1
+orbs:
+  aws-ecr: circleci/aws-ecr@6.6.0
 jobs:
-  build:
+  verify:
     working_directory: ~/repo
     docker:
       - image: circleci/node:lts
         environment:
           DB_HOST: 127.0.0.1
           DB_USERNAME: root
-
       - image: circleci/postgres:9.6.2-alpine
         environment:
           POSTGRES_USER: root
           POSTGRES_DB: notes
-
     steps:
       - checkout
-
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "package.json" }}
             - v1-dependencies-
-
       - run:
           name: Install dependencies
           command: yarn install
-
       - save_cache:
           paths:
             - node_modules
           key: v1-dependencies-{{ checksum "package.json" }}
-
       - run:
           name: Lint code
           command: yarn lint
-
       - run:
           name: Create database
           command: yarn db:init
-
       - run:
           name: Migrate database
           command: yarn db:migrate
-
       - run:
           name: Run tests
           command: yarn test
+workflows:
+  build-and-deploy:
+    jobs:
+      - verify
+      - aws-ecr/build-and-push-image:
+          repo: "notes-api-v2-ecr"
+          tag: "${CIRCLE_SHA1}"
+
+

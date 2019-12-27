@@ -9,10 +9,9 @@ Resources:
     Type: AWS::IAM::User
     Properties:
       UserName: circleci_user
-      Tags:
-        -
-          Key: ThirdParty
-          Value: True
+      LoginProfile:
+        Password: circleci_user
+        PasswordResetRequired: True
   CircleCiRepositoryPolicy:
     Type: AWS::IAM::Policy
     DependsOn:

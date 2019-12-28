@@ -238,7 +238,7 @@ describe("notes", () => {
         it("fails updating a note that belongs to another user", async (done: jest.DoneCallback) => {
             const payload = { note: { name: validName, content: validContent, folderId } };
             const response = await request(app)
-                .patch(`/notes/${updateableNoteId + 1}`)
+                .patch(`/notes/${updateableNoteId}`)
                 .set({
                     Authorization: secondJwt,
                 })

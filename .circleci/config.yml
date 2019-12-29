@@ -44,6 +44,7 @@ workflows:
       - verify
       - aws-ecr/build-and-push-image:
           repo: "notes-api-v2-ecr"
-          tag: "${CIRCLE_SHA1}"
+          # don't want to incur additional costs; will use the default 'latest' for all deployments
+          #tag: "${CIRCLE_SHA1}"
 
 

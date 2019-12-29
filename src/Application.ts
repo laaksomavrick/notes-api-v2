@@ -6,6 +6,7 @@ import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 import { ErrorHandler } from "./ErrorHandler";
 import FolderRouteHandlerCollection from "./folders";
+import { HelloWorldRouteHandlerCollection } from "./hello_world/HelloWorldRouteHandlerCollection";
 import NoteRouteHandlerCollection from "./notes";
 import UserRouteHandlerCollection from "./users";
 
@@ -33,7 +34,9 @@ export class Application {
     }
 
     public async serve(): Promise<void> {
-        await this.database.init();
+        if (!this.config.helloWorldMode) {
+            await this.database.init();
+        }
         this.server.listen(this.config.port, () => {
             this.logger.info("app listening", {
                 env: this.config.env,
@@ -49,19 +52,23 @@ export class Application {
         this.server.use(bodyParser.json());
         this.server.use(cors());
 
-        // TODO figure out a nice way to represent this in classes/type
+        if (this.config.helloWorldMode) {
+            const helloWorldRouteHandlerCollection = new HelloWorldRouteHandlerCollection(this);
+            helloWorldRouteHandlerCollection.build();
+        } else {
+            // TODO figure out a nice way to represent this in classes/type
+            const userRouteHandlerCollection = new UserRouteHandlerCollection(this);
+            const folderRouteHandlerCollection = new FolderRouteHandlerCollection(this);
+            const noteRouteHandlerCollection = new NoteRouteHandlerCollection(this);
 
-        const userRouteHandlerCollection = new UserRouteHandlerCollection(this);
-        const folderRouteHandlerCollection = new FolderRouteHandlerCollection(this);
-        const noteRouteHandlerCollection = new NoteRouteHandlerCollection(this);
-
-        const routeHandlerCollections = [
-            userRouteHandlerCollection,
-            folderRouteHandlerCollection,
-            noteRouteHandlerCollection,
-        ];
-        for (const routeHandlerCollection of routeHandlerCollections) {
-            routeHandlerCollection.build();
+            const routeHandlerCollections = [
+                userRouteHandlerCollection,
+                folderRouteHandlerCollection,
+                noteRouteHandlerCollection,
+            ];
+            for (const routeHandlerCollection of routeHandlerCollections) {
+                routeHandlerCollection.build();
+            }
         }
 
         const errorHandler = new ErrorHandler(this);

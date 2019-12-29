@@ -2,8 +2,6 @@
 FROM node:12 AS builder
 WORKDIR /home/node/app
 COPY . .
-# Here for bcrypt
-#RUN apk --no-cache add --virtual builds-deps build-base python
 RUN yarn cache clean --force
 RUN yarn install
 RUN yarn build

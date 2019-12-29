@@ -6,8 +6,8 @@
   "engine": "12",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "lint": "tslint -c tslint.json --fix 'src/**/*.ts' 'lib/**/*.ts' 'integrationTests/**.*.ts' 'tasks/**/*.ts'",
-    "format": "prettier --write 'lib/**/*.ts' 'src/**/*.ts' 'integrationTests/**/*.ts' 'tasks/**/*.ts'",
+    "lint": "tslint -c tslint.json --fix 'src/**/*.ts' 'lib/**/*.ts' 'integration_tests/**.*.ts' 'tasks/**/*.ts'",
+    "format": "prettier --write 'lib/**/*.ts' 'src/**/*.ts' 'integration_tests/**/*.ts' 'tasks/**/*.ts'",
     "test": "jest --forceExit --runInBand",
     "build": "rimraf dist && tsc",
     "db:init": "ts-node tasks/create-database.ts",

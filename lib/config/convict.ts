@@ -53,4 +53,9 @@ export default convict({
             env: "SECRET_BCRYPT",
         },
     },
+    helloWorldMode: {
+        doc: "When enabled, the application will respond 'hello, world' to all incoming requests",
+        default: false,
+        env: "HELLO_WORLD_MODE",
+    },
 });

@@ -35,7 +35,11 @@ export class Application {
     public async serve(): Promise<void> {
         await this.database.init();
         this.server.listen(this.config.port, () => {
-            this.logger.info("app listening on 3000");
+            this.logger.info("app listening", {
+                env: this.config.env,
+                host: this.config.host,
+                port: this.config.port,
+            });
         });
     }
 

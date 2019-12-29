@@ -19,7 +19,12 @@ export class Database {
 
     public async init(): Promise<void> {
         this.client = await this.pool.connect();
-        this.logger.info("database successfully connected");
+        this.logger.info("database successfully connected", {
+            db: this.config.database,
+            host: this.config.host,
+            port: this.config.port,
+            user: this.config.user,
+        });
     }
 
     public async query(

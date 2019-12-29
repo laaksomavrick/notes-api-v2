@@ -12,7 +12,7 @@ interface IPaginateResponse {
 }
 
 export abstract class HttpResponder {
-    private readonly logger = LoggerFactory.getLogger();
+    protected readonly logger = LoggerFactory.getLogger();
 
     protected httpOk(
         res: Response,

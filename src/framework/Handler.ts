@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { decode } from "jsonwebtoken";
-import { BadRequestError, NotFoundError, UnauthorizedError } from "./HttpError";
+import { UnauthorizedError } from "./HttpError";
 import { HttpResponder } from "./HttpResponder";
-import { Repository } from "./Repository";
 
 export type HandlerFn = (req: Request, res: Response, next: NextFunction) => Promise<void> | void;
 
@@ -10,7 +9,9 @@ export abstract class Handler extends HttpResponder {
     protected handlers: HandlerFn[] = [];
 
     public getHandlers(): HandlerFn[] {
-        return this.handlers.map((handler: HandlerFn) => this.handleErrors(handler));
+        return this.handlers.map((handler: HandlerFn) =>
+            this.handleErrors(this.logRequest(handler)),
+        );
     }
 
     protected abstract handle(
@@ -18,6 +19,20 @@ export abstract class Handler extends HttpResponder {
         res: Response,
         next: NextFunction,
     ): Promise<void> | void;
+
+    protected logRequest(fn: HandlerFn): HandlerFn {
+        return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+            try {
+                const httpMethod = req.method;
+                const url = req.url;
+                const loggable = { params: JSON.stringify(req.params), body: req.body };
+                this.logger.info(`${httpMethod} ${url}`, loggable);
+                await fn(req, res, next);
+            } catch (e) {
+                next(e);
+            }
+        };
+    }
 
     protected handleErrors(fn: HandlerFn): HandlerFn {
         return async (req: Request, res: Response, next: NextFunction): Promise<void> => {

@@ -1,17 +1,41 @@
 import winston from "winston";
 
+import { format } from "winston";
+const { colorize, combine, timestamp, errors, printf, splat } = format;
+
 export class Logger {
     private logger: winston.Logger;
 
+    private readonly format = combine(
+        // tslint:disable-next-line:typedef
+        format(info => {
+            info.level = info.level.toUpperCase();
+            return info;
+        })(),
+        colorize(),
+        timestamp(),
+        splat(),
+        errors(),
+        printf(
+            // tslint:disable-next-line:typedef
+            ({
+                // tslint:disable-next-line:no-shadowed-variable
+                timestamp,
+                level,
+                message,
+                ...rest
+            }): string => {
+                let restString = JSON.stringify(rest, undefined, 2);
+                restString = restString === "{}" ? "" : restString;
+
+                return `[${timestamp}] ${level} - ${message} ${restString}`;
+            },
+        ),
+    );
+
     constructor() {
         this.logger = winston.createLogger({
-            format: winston.format.combine(
-                // winston.format.colorize(),
-                // winston.format.align(),
-                // winston.format.simple(),
-                winston.format.timestamp(),
-                winston.format.prettyPrint(),
-            ),
+            format: this.format,
             transports: [new winston.transports.Console()],
         });
     }

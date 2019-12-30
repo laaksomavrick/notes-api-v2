@@ -33,3 +33,13 @@ deploy-circleci-ecr:
 destroy-circleci-ecr:
 	@aws cloudformation delete-stack \
 	--stack-name circleciecr
+
+deploy-notes-backend:
+	@aws cloudformation create-stack \
+	--stack-name notesbackend \
+	--template-body file://cloudformation/notes_backend.yaml \
+	--capabilities CAPABILITY_NAMED_IAM
+
+destroy-notes-backend:
+	@aws cloudformation delete-stack \
+	--stack-name notesbackend

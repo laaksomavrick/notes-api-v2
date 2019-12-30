@@ -1,5 +1,3 @@
-.PHONY: up down psql test
-
 up:
 	@docker-compose -f docker-compose.yml up
 

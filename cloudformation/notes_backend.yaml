@@ -6,12 +6,113 @@ Resources:
     Properties:
       CidrBlock: 10.0.0.0/16
 
-  NotesApiSubnetA:
+  # Why are two route tables being made?
+  # Default points to igw; these to point 0.0.0.0 to local
+  NotesBackendRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref NotesBackendVpc
+
+  NotesBackendInternetGateway:
+    Type: AWS::EC2::InternetGateway
+
+  NotesBackendVpcIgAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    DependsOn:
+      - NotesBackendVpc
+      - NotesBackendInternetGateway
+    Properties:
+      InternetGatewayId: !Ref NotesBackendInternetGateway
+      VpcId: !Ref NotesBackendVpc
+
+  NotesApiElasticIpA:
+    Type: AWS::EC2::EIP
+    DependsOn:
+      - NotesBackendVpcIgAttachment
+    Properties:
+      Domain: vpc
+
+  NotesApiElasticIpB:
+    Type: AWS::EC2::EIP
+    DependsOn:
+      - NotesBackendVpcIgAttachment
+    Properties:
+      Domain: vpc
+
+  NotesApiNatA:
+    Type: AWS::EC2::NatGateway
+    DependsOn:
+      - NotesApiElasticIpA
+      - NotesApiLoadBalancerSubnetA
+    Properties:
+      AllocationId: !GetAtt NotesApiElasticIpA.AllocationId
+      SubnetId: !Ref NotesApiLoadBalancerSubnetA
+
+  NotesApiNatB:
+    Type: AWS::EC2::NatGateway
+    DependsOn:
+      - NotesApiElasticIpB
+      - NotesApiLoadBalancerSubnetB
+    Properties:
+      AllocationId: !GetAtt NotesApiElasticIpA.AllocationId
+      SubnetId: !Ref NotesApiLoadBalancerSubnetB
+
+  NotesApiRouteA:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - NotesApiNatA
+      - NotesBackendRouteTable
+    Properties:
+      RouteTableId: !Ref NotesBackendRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NotesApiNatA
+
+  NotesApiRouteB:
+    Type: AWS::EC2::Route
+    DependsOn:
+      - NotesApiNatB
+      - NotesBackendRouteTable
+    Properties:
+      RouteTableId: !Ref NotesBackendRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NotesApiNatB
+
+  NotesApiLoadBalancerSubnetA:
     Type: AWS::EC2::Subnet
     DependsOn:
       - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.1.0/24
+      AvailabilityZone: ca-central-1a
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref NotesBackendVpc
+
+  NotesApiLoadBalancerSubnetB:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+      - NotesBackendVpc
+    Properties:
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: ca-central-1b
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref NotesBackendVpc
+
+  NotesApiSubnetA:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+      - NotesBackendVpc
+    Properties:
+      CidrBlock: 10.0.11.0/24
+      AvailabilityZone: ca-central-1a
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref NotesBackendVpc
+
+  NotesApiSubnetB:
+    Type: AWS::EC2::Subnet
+    DependsOn:
+      - NotesBackendVpc
+    Properties:
+      CidrBlock: 10.0.22.0/24
       AvailabilityZone: ca-central-1a
       MapPublicIpOnLaunch: false
       VpcId: !Ref NotesBackendVpc
@@ -42,6 +143,69 @@ Resources:
                   - ecr:GetAuthorizationToken
                 Resource: '*'
 
+  NotesApiLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    DependsOn:
+      - NotesApiLoadBalancerSubnetA
+      - NotesApiLoadBalancerSubnetB
+      - NotesBackendVpcIgAttachment
+    Properties:
+      IpAddressType: ipv4
+      Name: notes-api-load-balancer
+      Scheme: internet-facing
+      Subnets:
+        - !Ref NotesApiLoadBalancerSubnetA
+        - !Ref NotesApiLoadBalancerSubnetB
+      Type: application
+
+  NotesApiLoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn:
+      - NotesBackendVpc
+      - NotesApiLoadBalancer
+    Properties:
+      HealthCheckIntervalSeconds: 6
+      HealthCheckPath: /
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 2
+      TargetType: ip
+      Name: notes-api-lb-target-group
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId: !Ref NotesBackendVpc
+
+  NotesApiLoadBalancerListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    DependsOn:
+      - NotesApiLoadBalancerTargetGroup
+      - NotesApiLoadBalancer
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref NotesApiLoadBalancerTargetGroup
+      LoadBalancerArn: !Ref NotesApiLoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+  NotesApiLoadBalancerListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    DependsOn:
+      - NotesApiLoadBalancerTargetGroup
+      - NotesApiLoadBalancer
+      - NotesApiLoadBalancerListener
+    Properties:
+      Actions:
+        - Type: forward
+          TargetGroupArn: !Ref NotesApiLoadBalancerTargetGroup
+      Conditions:
+        - Field: path-pattern
+          Values:
+            - '*'
+      ListenerArn: !Ref NotesApiLoadBalancerListener
+      Priority: 1
+
   NotesApiEcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -52,16 +216,18 @@ Resources:
     DependsOn:
       - NotesApiEcrRole
     Properties:
-      Cpu: 256
-      Memory: 512
+      Cpu: 512
+      Memory: 1024
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
       ContainerDefinitions:
         - Image: 844544735981.dkr.ecr.ca-central-1.amazonaws.com/notes-api-v2-ecr:latest #TODO hide acc id / take as param
           Name: notes-api-v2
+          PortMappings:
+            - ContainerPort: 3000
           Environment:
-            - Key: HELLO_WORLD_MODE
+            - Name: HELLO_WORLD_MODE
               Value: true
       ExecutionRoleArn: !GetAtt NotesApiEcrRole.Arn
 
@@ -69,7 +235,11 @@ Resources:
     Type: AWS::ECS::Service
     DependsOn:
       - NotesApiSubnetA
+      - NotesApiSubnetB
       - NotesApiEcsTaskDefinition
+      - NotesApiLoadBalancer
+      - NotesApiLoadBalancerTargetGroup
+      - NotesApiLoadBalancerListener
     Properties:
       Cluster: !Ref NotesApiEcsCluster
       DesiredCount: 1
@@ -79,6 +249,11 @@ Resources:
           AssignPublicIp: DISABLED
           Subnets:
             - !Ref NotesApiSubnetA
+            - !Ref NotesApiSubnetB
       SchedulingStrategy: REPLICA
       ServiceName: notes-api-ecs-service
       TaskDefinition: !Ref NotesApiEcsTaskDefinition
+      LoadBalancers:
+        - ContainerName: notes-api-v2
+          ContainerPort: 3000
+          TargetGroupArn: !Ref NotesApiLoadBalancerTargetGroup

@@ -38,6 +38,12 @@ deploy-notes-backend:
 	--template-body file://cloudformation/notes_backend.yaml \
 	--capabilities CAPABILITY_NAMED_IAM
 
+update-notes-backend:
+	@aws cloudformation update-stack \
+	--stack-name notesbackend \
+	--template-body file://cloudformation/notes_backend.yaml \
+	--capabilities CAPABILITY_NAMED_IAM
+
 destroy-notes-backend:
 	@aws cloudformation delete-stack \
 	--stack-name notesbackend

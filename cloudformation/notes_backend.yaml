@@ -221,6 +221,8 @@ Resources:
                   - ecr:BatchGetImage
                   - ecr:GetDownloadUrlForLayer
                   - ecr:GetAuthorizationToken
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
                 Resource: '*'
 
   ## ALB
@@ -297,6 +299,9 @@ Resources:
     Properties:
       ClusterName: notes-api-ecs-cluster
 
+  NotesApiLogGroup:
+    Type: AWS::Logs::LogGroup
+
   NotesApiEcsTaskDefinition:
     Type: AWS::ECS::TaskDefinition
     DependsOn:
@@ -315,6 +320,12 @@ Resources:
           Environment:
             - Name: HELLO_WORLD_MODE
               Value: true
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref NotesApiLogGroup
+              awslogs-region: ca-central-1
+              awslogs-stream-prefix: notes-api
       ExecutionRoleArn: !GetAtt NotesApiEcrRole.Arn
 
   NotesApiEcsService:

@@ -27,12 +27,22 @@ Resources:
   NotesBackendPublicSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Allow all inbound and outbound traffic
+      GroupDescription: Allow all inbound and outbound traffic from the internet
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
-          IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
+          IpProtocol: -1
+      VpcId: !Ref NotesBackendVpc
+
+  NotesBackendPrivateSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DependsOn: NotesBackendPublicSecurityGroup
+    Properties:
+      GroupDescription: Allow all inbound and outbound traffic from public subnets
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref NotesBackendPublicSecurityGroup
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
       VpcId: !Ref NotesBackendVpc
 
   ## Public Subnets
@@ -238,10 +248,10 @@ Resources:
       - NotesBackendVpc
       - NotesApiLoadBalancer
     Properties:
-      HealthCheckIntervalSeconds: 30
+      HealthCheckIntervalSeconds: 10
       HealthCheckPath: /
       HealthCheckProtocol: HTTP
-      HealthCheckTimeoutSeconds: 10
+      HealthCheckTimeoutSeconds: 5
       HealthyThresholdCount: 2
       TargetType: ip
       Name: notes-api-lb-target-group

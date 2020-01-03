@@ -31,6 +31,9 @@ Resources:
       SecurityGroupIngress:
         - CidrIp: 0.0.0.0/0
           IpProtocol: -1
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
       VpcId: !Ref NotesBackendVpc
 
   NotesBackendPrivateSecurityGroup:
@@ -250,17 +253,17 @@ Resources:
       - NotesBackendVpc
       - NotesApiLoadBalancer
     Properties:
-      HealthCheckIntervalSeconds: 10
+      HealthCheckIntervalSeconds: 30
       HealthCheckPath: /
       HealthCheckProtocol: HTTP
-      HealthCheckTimeoutSeconds: 5
+      HealthCheckTimeoutSeconds: 10
       HealthyThresholdCount: 2
       TargetType: ip
       Name: notes-api-lb-target-group
-      Port: 3000
       Protocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId: !Ref NotesBackendVpc
+      Port: 3000
 
   NotesApiLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
@@ -274,23 +277,6 @@ Resources:
       LoadBalancerArn: !Ref NotesApiLoadBalancer
       Port: 80
       Protocol: HTTP
-
-  NotesApiLoadBalancerListenerRule:
-    Type: AWS::ElasticLoadBalancingV2::ListenerRule
-    DependsOn:
-      - NotesApiLoadBalancerTargetGroup
-      - NotesApiLoadBalancer
-      - NotesApiLoadBalancerListener
-    Properties:
-      Actions:
-        - Type: forward
-          TargetGroupArn: !Ref NotesApiLoadBalancerTargetGroup
-      Conditions:
-        - Field: path-pattern
-          Values:
-            - '*'
-      ListenerArn: !Ref NotesApiLoadBalancerListener
-      Priority: 1
 
   ## ECS
 
@@ -312,6 +298,7 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
+      ExecutionRoleArn: !GetAtt NotesApiEcrRole.Arn
       ContainerDefinitions:
         - Image: 844544735981.dkr.ecr.ca-central-1.amazonaws.com/notes-api-v2-ecr:latest #TODO hide acc id / take as param
           Name: notes-api-v2
@@ -326,7 +313,6 @@ Resources:
               awslogs-group: !Ref NotesApiLogGroup
               awslogs-region: ca-central-1
               awslogs-stream-prefix: notes-api
-      ExecutionRoleArn: !GetAtt NotesApiEcrRole.Arn
 
   NotesApiEcsService:
     Type: AWS::ECS::Service
@@ -341,12 +327,15 @@ Resources:
       Cluster: !Ref NotesApiEcsCluster
       DesiredCount: 1
       LaunchType: FARGATE
+      HealthCheckGracePeriodSeconds: 10
       NetworkConfiguration:
         AwsvpcConfiguration:
           AssignPublicIp: DISABLED
           Subnets:
             - !Ref NotesApiSubnetA
             - !Ref NotesApiSubnetB
+          SecurityGroups:
+            - !Ref NotesBackendPrivateSecurityGroup
       SchedulingStrategy: REPLICA
       ServiceName: notes-api-ecs-service
       TaskDefinition: !Ref NotesApiEcsTaskDefinition

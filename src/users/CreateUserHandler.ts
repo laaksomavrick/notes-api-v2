@@ -3,15 +3,19 @@ import { Handler } from "../framework/Handler";
 import { BadRequestError, ConflictError, UnprocessableEntityError } from "../framework/HttpError";
 import { CreateUserDto } from "./CreateUserDto";
 import { UserRepository } from "./UserRepository";
+import { UserService } from "./UserService";
 
 export class CreateUserHandler extends Handler {
     private readonly userRepository: UserRepository;
 
+    private readonly userService: UserService;
+
     protected readonly handlers = [this.handle.bind(this)];
 
-    constructor(userRepository: UserRepository) {
+    constructor(userRepository: UserRepository, userService: UserService) {
         super();
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -37,7 +41,7 @@ export class CreateUserHandler extends Handler {
         }
 
         // Create user
-        const user = await this.userRepository.create(dto);
+        const user = await this.userService.createUser(dto.email, dto.password);
 
         this.httpOk(res, { user });
     }

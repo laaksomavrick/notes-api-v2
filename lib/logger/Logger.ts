@@ -73,13 +73,13 @@ export class Logger {
                 const keys = Object.keys(item);
                 // tslint:disable-next-line:prefer-for-of
                 for (let i = 0; i < keys.length; i++) {
-                  const key = keys[i];
-                  const value = item[key];
-                  metaString = `${metaString} ${key}=${value}`;
-              }
-           } else {
+                    const key = keys[i];
+                    const value = item[key];
+                    metaString = `${metaString} ${key}=${value}`;
+                }
+            } else {
                 metaString = `${metaString} ${item}`;
-           }
+            }
         }
         return metaString;
     }

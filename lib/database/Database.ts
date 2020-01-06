@@ -82,4 +82,20 @@ export class Database {
             await Promise.all(promises);
         }
     }
+
+    // tslint:disable-next-line:no-any
+    public async transaction(execs: () => Promise<void>): Promise<any> {
+        if (this.client === undefined) {
+            await this.init();
+        }
+
+        try {
+            await this.query("BEGIN");
+            await execs();
+            await this.query("COMMIT");
+        } catch (e) {
+            await this.query("ROLLBACK");
+            throw e;
+        }
+    }
 }

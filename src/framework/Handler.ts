@@ -25,7 +25,10 @@ export abstract class Handler extends HttpResponder {
             try {
                 const httpMethod = req.method;
                 const url = req.url;
-                const loggable = { params: JSON.stringify(req.params), body: req.body };
+                const loggable = {
+                    body: JSON.stringify(req.body),
+                    params: JSON.stringify(req.params),
+                };
                 this.logger.info(`${httpMethod} ${url}`, loggable);
                 await fn(req, res, next);
             } catch (e) {

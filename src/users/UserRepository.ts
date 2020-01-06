@@ -23,6 +23,14 @@ export class UserRepository extends Repository<User> {
         }
     }
 
+    public async findByEmailOrThrow(email: string): Promise<User> {
+        const user = await this.findByEmail(email);
+        if (!user) {
+            throw new Error(`User via ${email} not found`);
+        }
+        return user;
+    }
+
     // TODO refactor
     public async findByEmailWithPassword(email: string): Promise<User | undefined> {
         const { rows } = await this.database.query(

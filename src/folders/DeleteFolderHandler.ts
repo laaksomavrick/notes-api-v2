@@ -30,6 +30,8 @@ export class DeleteFolderHandler extends Handler {
             throw new NotFoundError();
         }
 
+        // TODO: cannot delete folder if it's the last one
+
         // delete the folder
         await this.folderRepository.delete(folderId);
 

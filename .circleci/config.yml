@@ -47,4 +47,5 @@ workflows:
           # don't want to incur additional costs; will use the default 'latest' for all deployments
           #tag: "${CIRCLE_SHA1}"
 
+# https://circleci.com/blog/orbs-aws-ecr/ <-- for when db is live, to run migrations and create db as appropriate
 

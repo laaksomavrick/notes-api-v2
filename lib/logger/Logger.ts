@@ -1,3 +1,4 @@
+import { type } from "os";
 import winston from "winston";
 
 import { format } from "winston";
@@ -23,12 +24,8 @@ export class Logger {
                 timestamp,
                 level,
                 message,
-                ...rest
             }): string => {
-                let restString = JSON.stringify(rest, undefined, 2);
-                restString = restString === "{}" ? "" : restString;
-
-                return `[${timestamp}] ${level} - ${message} ${restString}`;
+                return `[${timestamp}] ${level} - ${message}`;
             },
         ),
     );
@@ -43,17 +40,47 @@ export class Logger {
     // tslint:disable-next-line:no-any
     public info(message: string, ...meta: any[]): void {
         if (process.env.NODE_ENV !== "test") {
-            this.logger.info(message, ...meta);
+            const metaString = this.getMetaString(meta);
+            const msg = `${message}${metaString}`;
+            this.logger.info(msg);
         }
     }
 
     // tslint:disable-next-line:no-any
     public debug(message: string, ...meta: any[]): void {
-        this.logger.debug(message, ...meta);
+        const metaString = this.getMetaString(meta);
+        const msg = `${message}${metaString}`;
+        this.logger.debug(msg);
     }
 
     // tslint:disable-next-line:no-any
     public error(message: string, ...meta: any[]): void {
-        this.logger.error(message, ...meta);
+        const metaString = this.getMetaString(meta);
+        const msg = `${message}${metaString}`;
+        this.logger.error(msg);
+    }
+
+    // tslint:disable-next-line:no-any
+    private getMetaString(...meta: any[]): string {
+        let metaString = "";
+
+        for (const item of meta) {
+            if (Array.isArray(item)) {
+                // tslint:disable-next-line:typedef
+                const arrayMetaString = item.map(ele => this.getMetaString(ele));
+                metaString = `${metaString} ${arrayMetaString}`;
+            } else if (typeof item === "object") {
+                const keys = Object.keys(item);
+                // tslint:disable-next-line:prefer-for-of
+                for (let i = 0; i < keys.length; i++) {
+                  const key = keys[i];
+                  const value = item[key];
+                  metaString = `${metaString} ${key}=${value}`;
+              }
+           } else {
+                metaString = `${metaString} ${item}`;
+           }
+        }
+        return metaString;
     }
 }

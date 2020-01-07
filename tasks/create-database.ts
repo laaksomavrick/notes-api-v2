@@ -1,22 +1,21 @@
+import { DatabaseConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 
 (async (): Promise<void> => {
     const logger = LoggerFactory.getLogger();
-    const dbName = "notes";
 
     let postgresDb;
     let notesDb;
 
     try {
-        // TODO: refactor config into lib/config alongside src/index.ts
-        postgresDb = new Database({
-            database: "postgres",
-            host: "localhost",
-            password: undefined,
-            port: 5432,
-            user: "postgres",
-        });
+        const config = new DatabaseConfig();
+        const dbName = config.database;
+
+        const postgresConfig = new DatabaseConfig();
+        postgresConfig.database = "postgres";
+
+        postgresDb = new Database(postgresConfig);
 
         await postgresDb.init();
 
@@ -34,13 +33,7 @@ import { LoggerFactory } from "../lib/logger";
             logger.info(`${dbName} database created`);
         }
 
-        notesDb = new Database({
-            database: "notes",
-            host: "localhost",
-            password: undefined,
-            port: 5432,
-            user: "postgres",
-        });
+        notesDb = new Database(config);
 
         await notesDb.query(`
         CREATE TABLE IF NOT EXISTS migrations(

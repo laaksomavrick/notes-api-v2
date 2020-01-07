@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import { DatabaseConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 
@@ -8,24 +9,17 @@ const MIGRATIONS_DIRECTORY = path.join(process.cwd(), "migrations");
 
 (async (): Promise<void> => {
     const logger = LoggerFactory.getLogger();
-    const dbName = "notes";
-
     let notesDb: Database;
 
     try {
         logger.info("running migrations");
 
-        // TODO: refactor config into lib/config alongside src/index.ts
-        notesDb = new Database({
-            database: dbName,
-            host: "localhost",
-            password: undefined,
-            port: 5432,
-            user: "postgres",
-        });
+        const config = new DatabaseConfig();
+        notesDb = new Database(config);
 
         const filenames = await fs.promises.readdir(MIGRATIONS_DIRECTORY);
-        logger.info("filenames", filenames);
+        logger.info("filenames", { filenames });
+
         const migrationsInFolder = filenames.map((filename: string) => ({
             filename,
             hash: crypto
@@ -67,10 +61,10 @@ const MIGRATIONS_DIRECTORY = path.join(process.cwd(), "migrations");
                 [filename, hash],
             );
 
-            logger.info("ran migration", filename);
+            logger.info("ran migration", { filename });
         }
     } catch (e) {
-        logger.error("something went wrong", e.toString());
+        logger.error("something went wrong", { err: e.toString() });
         process.exit(1);
     } finally {
         logger.info("done");

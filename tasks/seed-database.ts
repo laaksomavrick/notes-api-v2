@@ -1,3 +1,4 @@
+import { DatabaseConfig } from "../lib/config";
 import { Database } from "../lib/database";
 import { LoggerFactory } from "../lib/logger";
 
@@ -8,14 +9,8 @@ import { LoggerFactory } from "../lib/logger";
     const logger = LoggerFactory.getLogger();
     let db;
     try {
-        // TODO: refactor config into lib/config alongside src/index.ts
-        db = new Database({
-            database: "notes",
-            host: "localhost",
-            password: undefined,
-            port: 5432,
-            user: "postgres",
-        });
+        const config = new DatabaseConfig();
+        db = new Database(config);
 
         await db.init();
 
@@ -32,6 +27,22 @@ import { LoggerFactory } from "../lib/logger";
                 "2019-11-26 00:02:00.336946 +00:00",
             ],
         );
+
+        await db.query(
+            `
+                    INSERT INTO folders (id, user_id, name, created_at, updated_at, deleted)
+                    VALUES ($1, $2, $3, $4, $5, $6)
+          `,
+            [
+                1,
+                1,
+                "Default",
+                "2019-11-26 00:02:00.336946 +00:00",
+                "2019-11-26 00:02:00.336946 +00:00",
+                false,
+            ],
+        );
+
         logger.info("done seeding");
     } catch (e) {
         logger.error("something went wrong", e);

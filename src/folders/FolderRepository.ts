@@ -59,6 +59,21 @@ export class FolderRepository extends Repository<Folder> {
         );
     }
 
+    public async getActiveCountForUser(userId: number): Promise<number> {
+        const queryResult = await this.database.query(
+            `
+            SELECT COUNT(*)
+            FROM folders
+            WHERE user_id = $1
+            AND deleted = false`,
+            [userId],
+        );
+
+        const [{ count }] = queryResult.rows;
+
+        return count;
+    }
+
     // tslint:disable-next-line:no-any
     protected parseRowToType(row: any): Folder {
         return new Folder(

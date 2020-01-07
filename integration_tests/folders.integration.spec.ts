@@ -239,12 +239,17 @@ describe("folders", () => {
 
     describe("DELETE /folders", () => {
         let folderId: number;
+        let secondFolderId: number;
 
         beforeEach(async () => {
             await application.database.truncate(["folders"]);
             const createFolderDto = new CreateFolderDto(faker.random.word());
+
             const folder = await folderRepo.create(createFolderDto, userId);
             folderId = folder.id;
+
+            const secondFolder = await folderRepo.create(createFolderDto, userId);
+            secondFolderId = secondFolder.id;
         });
 
         it("it can delete a folder", async (done: jest.DoneCallback) => {
@@ -277,6 +282,19 @@ describe("folders", () => {
                 })
                 .send();
             expect(response.status).toBe(404);
+            done();
+        });
+
+        it("it cannot delete a folder when only one folder exists", async (done: jest.DoneCallback) => {
+            await folderRepo.delete(folderId);
+
+            const response = await request(app)
+                .delete(`/folders/${secondFolderId}`)
+                .set({
+                    Authorization: jwt,
+                })
+                .send();
+            expect(response.status).toBe(422);
             done();
         });
     });

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { Handler } from "../framework/Handler";
-import { BadRequestError, NotFoundError } from "../framework/HttpError";
+import { BadRequestError, NotFoundError, UnprocessableEntityError } from "../framework/HttpError";
 import { FolderRepository } from "./FolderRepository";
 
 export class DeleteFolderHandler extends Handler {
@@ -30,7 +30,11 @@ export class DeleteFolderHandler extends Handler {
             throw new NotFoundError();
         }
 
-        // TODO: cannot delete folder if it's the last one
+        const count = await this.folderRepository.getActiveCountForUser(userId);
+
+        if (count <= 1) {
+            throw new UnprocessableEntityError();
+        }
 
         // delete the folder
         await this.folderRepository.delete(folderId);

@@ -32,7 +32,6 @@ export class FolderRepository extends Repository<Folder> {
     public async update(dto: UpdateFolderDto, folderId: number): Promise<Folder> {
         const name = dto.name;
 
-        // TODO: generalize fields and where clause in repository
         const queryResult = await this.database.query(
             `
             UPDATE folders

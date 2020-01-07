@@ -49,7 +49,6 @@ export class NoteRepository extends Repository<Note> {
         const content = dto.content;
         const folderId = dto.folderId;
 
-        // TODO: generalize fields and where clause in repository
         const queryResult = await this.database.query(
             `
             UPDATE notes

@@ -31,7 +31,6 @@ export class UserRepository extends Repository<User> {
         return user;
     }
 
-    // TODO refactor
     public async findByEmailWithPassword(email: string): Promise<User | undefined> {
         const { rows } = await this.database.query(
             `

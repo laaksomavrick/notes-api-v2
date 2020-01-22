@@ -1,10 +1,53 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Backend infrastructure for the notes-api-v2 backend.
+Parameters:
+  AvailabilityZoneA:
+    Type: String
+    Default: ca-central-1a
+    AllowedValues:
+      - ca-central-1a
+      - ca-central-1b
+      - ca-central-1c
+      - ca-central-1d
+    Description: An availability zone for one of the subnets used for the stack
+
+  AvailabilityZoneB:
+    Type: String
+    Default: ca-central-1b
+    AllowedValues:
+      - ca-central-1a
+      - ca-central-1b
+      - ca-central-1c
+      - ca-central-1d
+    Description: An availability zone for one of the subnets used for the stack
+
+  ApiPort:
+    Type: Number
+    Default: 3000
+    Description: The port the api is exposed on
+
+  LoadBalancerPort:
+    Type: Number
+    Default: 80
+    Description: The port the load balancer is exposed on
+
+  ContainerCpu:
+    Type: Number
+    Default: 256
+    Description: The cpu value to give to the api container
+
+  ContainerMemory:
+    Type: Number
+    Default: 512
+    Description: The memory value to give to the api container
+
+  ContainerName:
+    Type: String
+    Default: notes-api-v2
+    Description: The name of the api container definition
+
 Resources:
-
-  ## TODO: parameterize lots of things (DRY); eliminate unnecessary DependsOn; Description and Tags
   ## VPC
-
   NotesBackendVpc:
     Type: AWS::EC2::VPC
     Properties:
@@ -17,9 +60,6 @@ Resources:
 
   NotesBackendVpcIgAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
-    DependsOn:
-      - NotesBackendVpc
-      - NotesBackendInternetGateway
     Properties:
       InternetGatewayId: !Ref NotesBackendInternetGateway
       VpcId: !Ref NotesBackendVpc
@@ -38,7 +78,6 @@ Resources:
 
   NotesBackendPrivateSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    DependsOn: NotesBackendPublicSecurityGroup
     Properties:
       GroupDescription: Allow all inbound and outbound traffic from public subnets
       SecurityGroupIngress:
@@ -49,51 +88,40 @@ Resources:
       VpcId: !Ref NotesBackendVpc
 
   ## Public Subnets
-
   NotesApiLoadBalancerSubnetA:
     Type: AWS::EC2::Subnet
-    DependsOn:
-      - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.1.0/24
-      AvailabilityZone: ca-central-1a
+      AvailabilityZone: !Ref AvailabilityZoneA
       MapPublicIpOnLaunch: true
       VpcId: !Ref NotesBackendVpc
 
   NotesApiLoadBalancerSubnetB:
     Type: AWS::EC2::Subnet
-    DependsOn:
-      - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.2.0/24
-      AvailabilityZone: ca-central-1b
+      AvailabilityZone: !Ref AvailabilityZoneB
       MapPublicIpOnLaunch: true
       VpcId: !Ref NotesBackendVpc
 
   ## Private Subnets
-
   NotesApiSubnetA:
     Type: AWS::EC2::Subnet
-    DependsOn:
-      - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.11.0/24
-      AvailabilityZone: ca-central-1a
+      AvailabilityZone: !Ref AvailabilityZoneA
       MapPublicIpOnLaunch: false
       VpcId: !Ref NotesBackendVpc
 
   NotesApiSubnetB:
     Type: AWS::EC2::Subnet
-    DependsOn:
-      - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.22.0/24
-      AvailabilityZone: ca-central-1a
+      AvailabilityZone: !Ref AvailabilityZoneB
       MapPublicIpOnLaunch: false
       VpcId: !Ref NotesBackendVpc
 
   # Elastic IPs
-
   NotesApiElasticIpA:
     Type: AWS::EC2::EIP
     DependsOn:
@@ -109,27 +137,19 @@ Resources:
       Domain: vpc
 
   ## Nat Gateways
-
   NotesApiNatA:
     Type: AWS::EC2::NatGateway
-    DependsOn:
-      - NotesApiElasticIpA
-      - NotesApiLoadBalancerSubnetA
     Properties:
       AllocationId: !GetAtt NotesApiElasticIpA.AllocationId
       SubnetId: !Ref NotesApiLoadBalancerSubnetA
 
   NotesApiNatB:
     Type: AWS::EC2::NatGateway
-    DependsOn:
-      - NotesApiElasticIpB
-      - NotesApiLoadBalancerSubnetB
     Properties:
       AllocationId: !GetAtt NotesApiElasticIpB.AllocationId
       SubnetId: !Ref NotesApiLoadBalancerSubnetB
 
   ## Public route tables and routing
-
   NotesBackendPublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -138,7 +158,7 @@ Resources:
   NotesBackendDefaultPublicRoute:
     Type: AWS::EC2::Route
     DependsOn:
-      - NotesBackendInternetGateway
+      - NotesBackendVpcIgAttachment
     Properties:
       RouteTableId: !Ref NotesBackendPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
@@ -157,7 +177,6 @@ Resources:
       SubnetId: !Ref NotesApiLoadBalancerSubnetB
 
   ## Private route tables and routing
-
   NotesBackendPrivateRouteTableA:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -166,7 +185,7 @@ Resources:
   NotesApiPrivateRouteA:
     Type: AWS::EC2::Route
     DependsOn:
-      - NotesBackendInternetGateway
+      - NotesBackendVpcIgAttachment
     Properties:
       RouteTableId: !Ref NotesBackendPrivateRouteTableA
       DestinationCidrBlock: 0.0.0.0/0
@@ -186,7 +205,7 @@ Resources:
   NotesApiPrivateRouteB:
     Type: AWS::EC2::Route
     DependsOn:
-      - NotesBackendInternetGateway
+      - NotesBackendVpcIgAttachment
     Properties:
       RouteTableId: !Ref NotesBackendPrivateRouteTableB
       DestinationCidrBlock: 0.0.0.0/0
@@ -199,7 +218,6 @@ Resources:
       SubnetId: !Ref NotesApiSubnetB
 
   ## ECS IAM
-
   NotesApiEcrRole:
     Type: AWS::IAM::Role
     Properties:
@@ -229,12 +247,9 @@ Resources:
                 Resource: '*'
 
   ## ALB
-
   NotesApiLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn:
-      - NotesApiLoadBalancerSubnetA
-      - NotesApiLoadBalancerSubnetB
       - NotesBackendVpcIgAttachment
     Properties:
       IpAddressType: ipv4
@@ -250,7 +265,6 @@ Resources:
   NotesApiLoadBalancerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     DependsOn:
-      - NotesBackendVpc
       - NotesApiLoadBalancer
     Properties:
       HealthCheckIntervalSeconds: 30
@@ -263,23 +277,19 @@ Resources:
       Protocol: HTTP
       UnhealthyThresholdCount: 2
       VpcId: !Ref NotesBackendVpc
-      Port: 3000
+      Port: !Ref ApiPort
 
   NotesApiLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
-    DependsOn:
-      - NotesApiLoadBalancerTargetGroup
-      - NotesApiLoadBalancer
     Properties:
       DefaultActions:
         - Type: forward
           TargetGroupArn: !Ref NotesApiLoadBalancerTargetGroup
       LoadBalancerArn: !Ref NotesApiLoadBalancer
-      Port: 80
+      Port: !Ref LoadBalancerPort
       Protocol: HTTP
 
   ## ECS
-
   NotesApiEcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -290,20 +300,18 @@ Resources:
 
   NotesApiEcsTaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    DependsOn:
-      - NotesApiEcrRole
     Properties:
-      Cpu: 256
-      Memory: 512
+      Cpu: !Ref ContainerCpu
+      Memory: !Ref ContainerMemory
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
       ExecutionRoleArn: !GetAtt NotesApiEcrRole.Arn
       ContainerDefinitions:
         - Image: 844544735981.dkr.ecr.ca-central-1.amazonaws.com/notes-api-v2-ecr:latest #TODO hide acc id / take as param
-          Name: notes-api-v2
+          Name: !Ref ContainerName
           PortMappings:
-            - ContainerPort: 3000
+            - ContainerPort: !Ref ApiPort
           Environment:
             - Name: HELLO_WORLD_MODE
               Value: true
@@ -316,13 +324,6 @@ Resources:
 
   NotesApiEcsService:
     Type: AWS::ECS::Service
-    DependsOn:
-      - NotesApiSubnetA
-      - NotesApiSubnetB
-      - NotesApiEcsTaskDefinition
-      - NotesApiLoadBalancer
-      - NotesApiLoadBalancerTargetGroup
-      - NotesApiLoadBalancerListener
     Properties:
       Cluster: !Ref NotesApiEcsCluster
       DesiredCount: 1
@@ -340,6 +341,6 @@ Resources:
       ServiceName: notes-api-ecs-service
       TaskDefinition: !Ref NotesApiEcsTaskDefinition
       LoadBalancers:
-        - ContainerName: notes-api-v2
-          ContainerPort: 3000
+        - ContainerName: !Ref ContainerName
+          ContainerPort: !Ref ApiPort
           TargetGroupArn: !Ref NotesApiLoadBalancerTargetGroup

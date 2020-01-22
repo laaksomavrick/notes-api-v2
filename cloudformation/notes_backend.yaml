@@ -17,9 +17,6 @@ Resources:
 
   NotesBackendVpcIgAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
-    DependsOn:
-      - NotesBackendVpc
-      - NotesBackendInternetGateway
     Properties:
       InternetGatewayId: !Ref NotesBackendInternetGateway
       VpcId: !Ref NotesBackendVpc
@@ -38,7 +35,6 @@ Resources:
 
   NotesBackendPrivateSecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    DependsOn: NotesBackendPublicSecurityGroup
     Properties:
       GroupDescription: Allow all inbound and outbound traffic from public subnets
       SecurityGroupIngress:
@@ -52,8 +48,6 @@ Resources:
 
   NotesApiLoadBalancerSubnetA:
     Type: AWS::EC2::Subnet
-    DependsOn:
-      - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.1.0/24
       AvailabilityZone: ca-central-1a
@@ -62,8 +56,6 @@ Resources:
 
   NotesApiLoadBalancerSubnetB:
     Type: AWS::EC2::Subnet
-    DependsOn:
-      - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.2.0/24
       AvailabilityZone: ca-central-1b
@@ -74,8 +66,6 @@ Resources:
 
   NotesApiSubnetA:
     Type: AWS::EC2::Subnet
-    DependsOn:
-      - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.11.0/24
       AvailabilityZone: ca-central-1a
@@ -84,8 +74,6 @@ Resources:
 
   NotesApiSubnetB:
     Type: AWS::EC2::Subnet
-    DependsOn:
-      - NotesBackendVpc
     Properties:
       CidrBlock: 10.0.22.0/24
       AvailabilityZone: ca-central-1a
@@ -112,18 +100,12 @@ Resources:
 
   NotesApiNatA:
     Type: AWS::EC2::NatGateway
-    DependsOn:
-      - NotesApiElasticIpA
-      - NotesApiLoadBalancerSubnetA
     Properties:
       AllocationId: !GetAtt NotesApiElasticIpA.AllocationId
       SubnetId: !Ref NotesApiLoadBalancerSubnetA
 
   NotesApiNatB:
     Type: AWS::EC2::NatGateway
-    DependsOn:
-      - NotesApiElasticIpB
-      - NotesApiLoadBalancerSubnetB
     Properties:
       AllocationId: !GetAtt NotesApiElasticIpB.AllocationId
       SubnetId: !Ref NotesApiLoadBalancerSubnetB
@@ -138,7 +120,7 @@ Resources:
   NotesBackendDefaultPublicRoute:
     Type: AWS::EC2::Route
     DependsOn:
-      - NotesBackendInternetGateway
+      - NotesBackendVpcIgAttachment
     Properties:
       RouteTableId: !Ref NotesBackendPublicRouteTable
       DestinationCidrBlock: 0.0.0.0/0
@@ -166,7 +148,7 @@ Resources:
   NotesApiPrivateRouteA:
     Type: AWS::EC2::Route
     DependsOn:
-      - NotesBackendInternetGateway
+      - NotesBackendVpcIgAttachment
     Properties:
       RouteTableId: !Ref NotesBackendPrivateRouteTableA
       DestinationCidrBlock: 0.0.0.0/0
@@ -186,7 +168,7 @@ Resources:
   NotesApiPrivateRouteB:
     Type: AWS::EC2::Route
     DependsOn:
-      - NotesBackendInternetGateway
+      - NotesBackendVpcIgAttachment
     Properties:
       RouteTableId: !Ref NotesBackendPrivateRouteTableB
       DestinationCidrBlock: 0.0.0.0/0
@@ -233,8 +215,6 @@ Resources:
   NotesApiLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     DependsOn:
-      - NotesApiLoadBalancerSubnetA
-      - NotesApiLoadBalancerSubnetB
       - NotesBackendVpcIgAttachment
     Properties:
       IpAddressType: ipv4
@@ -250,7 +230,6 @@ Resources:
   NotesApiLoadBalancerTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     DependsOn:
-      - NotesBackendVpc
       - NotesApiLoadBalancer
     Properties:
       HealthCheckIntervalSeconds: 30
@@ -267,9 +246,6 @@ Resources:
 
   NotesApiLoadBalancerListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
-    DependsOn:
-      - NotesApiLoadBalancerTargetGroup
-      - NotesApiLoadBalancer
     Properties:
       DefaultActions:
         - Type: forward
@@ -290,8 +266,6 @@ Resources:
 
   NotesApiEcsTaskDefinition:
     Type: AWS::ECS::TaskDefinition
-    DependsOn:
-      - NotesApiEcrRole
     Properties:
       Cpu: 256
       Memory: 512
@@ -316,13 +290,6 @@ Resources:
 
   NotesApiEcsService:
     Type: AWS::ECS::Service
-    DependsOn:
-      - NotesApiSubnetA
-      - NotesApiSubnetB
-      - NotesApiEcsTaskDefinition
-      - NotesApiLoadBalancer
-      - NotesApiLoadBalancerTargetGroup
-      - NotesApiLoadBalancerListener
     Properties:
       Cluster: !Ref NotesApiEcsCluster
       DesiredCount: 1

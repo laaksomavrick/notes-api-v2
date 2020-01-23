@@ -22,6 +22,6 @@
       "jest"
     ]
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "lib/**/*"],
   "exclude": ["node_modules", "dist"]
 }

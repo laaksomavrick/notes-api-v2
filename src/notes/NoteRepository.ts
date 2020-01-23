@@ -1,3 +1,4 @@
+import { Context } from "../framework/Context";
 import { Repository } from "../framework/Repository";
 import { CreateNoteDto } from "./CreateNoteDto";
 import { GetNotesDto } from "./GetNotesDto";
@@ -7,7 +8,7 @@ import { UpdateNoteDto } from "./UpdateNoteDto";
 export class NoteRepository extends Repository<Note> {
     protected tableName = "notes";
 
-    public async findAllNotes(dto: GetNotesDto, userId: number): Promise<Note[]> {
+    public async findAllNotes(context: Context, dto: GetNotesDto, userId: number): Promise<Note[]> {
         const folderId = dto.folderId;
         const wheres = [{ field: "user_id", value: userId }, { field: "deleted", value: false }];
 
@@ -15,10 +16,10 @@ export class NoteRepository extends Repository<Note> {
             wheres.push({ field: "folder_id", value: folderId });
         }
 
-        return this.findAll(["*"], wheres);
+        return this.findAll(context, ["*"], wheres);
     }
 
-    public async create(dto: CreateNoteDto, userId: number): Promise<Note> {
+    public async create(context: Context, dto: CreateNoteDto, userId: number): Promise<Note> {
         const name = dto.name;
         const content = dto.content;
         const folderId = dto.folderId;
@@ -29,11 +30,12 @@ export class NoteRepository extends Repository<Note> {
             VALUES ($1, $2, $3, $4)
             RETURNING id`,
             [name, userId, folderId, content],
+            context,
         );
 
         const [{ id }] = queryResult.rows;
 
-        return this.findByIdOrThrow(id, [
+        return this.findByIdOrThrow(context, id, [
             "id",
             "user_id",
             "folder_id",
@@ -44,7 +46,7 @@ export class NoteRepository extends Repository<Note> {
         ]);
     }
 
-    public async update(dto: UpdateNoteDto, noteId: number): Promise<Note> {
+    public async update(context: Context, dto: UpdateNoteDto, noteId: number): Promise<Note> {
         const name = dto.name;
         const content = dto.content;
         const folderId = dto.folderId;
@@ -58,11 +60,12 @@ export class NoteRepository extends Repository<Note> {
             WHERE id = $4
             RETURNING id`,
             [name, content, folderId, noteId],
+            context,
         );
 
         const [{ id }] = queryResult.rows;
 
-        return this.findByIdOrThrow(id, [
+        return this.findByIdOrThrow(context, id, [
             "id",
             "user_id",
             "name",
@@ -73,7 +76,7 @@ export class NoteRepository extends Repository<Note> {
         ]);
     }
 
-    public async delete(noteId: number): Promise<void> {
+    public async delete(context: Context, noteId: number): Promise<void> {
         await this.database.query(
             `
                     UPDATE notes
@@ -81,6 +84,7 @@ export class NoteRepository extends Repository<Note> {
                     WHERE id = $1
                       AND deleted = false RETURNING id`,
             [noteId],
+            context,
         );
     }
 

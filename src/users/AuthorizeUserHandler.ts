@@ -34,6 +34,8 @@ export class AuthorizeUserHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
+
         // Parse dto
         const dto = AuthorizeUserDto.build(req.body);
 
@@ -49,7 +51,7 @@ export class AuthorizeUserHandler extends Handler {
         }
 
         // Check that the user exists
-        const user = await this.userRepository.findByEmailWithPassword(dto.email);
+        const user = await this.userRepository.findByEmailWithPassword(context, dto.email);
 
         if (!user) {
             throw new NotFoundError();

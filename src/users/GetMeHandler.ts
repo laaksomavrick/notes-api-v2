@@ -14,9 +14,10 @@ export class GetMeHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
         const userId = this.getUserId(req);
 
-        const user = await this.userRepository.findById(userId, [
+        const user = await this.userRepository.findById(context, userId, [
             "id",
             "email",
             "created_at",

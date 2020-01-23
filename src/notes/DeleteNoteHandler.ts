@@ -14,6 +14,7 @@ export class DeleteNoteHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
         const userId = this.getUserId(req);
         const noteId = this.getParamId(req, "noteId");
 
@@ -22,14 +23,16 @@ export class DeleteNoteHandler extends Handler {
         }
 
         // Verify the note exists
-        const noteExists = await this.noteRepository.findByIdAndUserId(noteId, userId, ["id"]);
+        const noteExists = await this.noteRepository.findByIdAndUserId(context, noteId, userId, [
+            "id",
+        ]);
 
         if (!noteExists) {
             throw new NotFoundError();
         }
 
         // delete the note
-        await this.noteRepository.delete(noteId);
+        await this.noteRepository.delete(context, noteId);
 
         this.httpOk(res, {});
     }

@@ -14,6 +14,8 @@ export class DeleteFolderHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
+
         const userId = this.getUserId(req);
         const folderId = this.getParamId(req, "folderId");
 
@@ -22,22 +24,25 @@ export class DeleteFolderHandler extends Handler {
         }
 
         // Verify the folder exists
-        const folderExists = await this.folderRepository.findByIdAndUserId(folderId, userId, [
-            "id",
-        ]);
+        const folderExists = await this.folderRepository.findByIdAndUserId(
+            context,
+            folderId,
+            userId,
+            ["id"],
+        );
 
         if (!folderExists) {
             throw new NotFoundError();
         }
 
-        const count = await this.folderRepository.getActiveCountForUser(userId);
+        const count = await this.folderRepository.getActiveCountForUser(context, userId);
 
         if (count <= 1) {
             throw new UnprocessableEntityError();
         }
 
         // delete the folder
-        await this.folderRepository.delete(folderId);
+        await this.folderRepository.delete(context, folderId);
 
         this.httpOk(res, {});
     }

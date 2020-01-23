@@ -15,6 +15,8 @@ export class GetNotesHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
+
         // Get the userId
         const userId = this.getUserId(req);
 
@@ -26,7 +28,7 @@ export class GetNotesHandler extends Handler {
         }
 
         // Retrieve notes
-        const notes = await this.noteRepository.findAllNotes(dto, userId);
+        const notes = await this.noteRepository.findAllNotes(context, dto, userId);
 
         this.httpOk(res, { notes });
     }

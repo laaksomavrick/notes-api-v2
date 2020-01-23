@@ -1,6 +1,7 @@
 import faker from "faker";
 import request from "supertest";
 import { Application } from "../src/Application";
+import { Context } from "../src/framework/Context";
 import { CreateUserDto } from "../src/users/CreateUserDto";
 import { UserRepository } from "../src/users/UserRepository";
 
@@ -8,6 +9,7 @@ describe("auth", () => {
     const application = Application.build();
     const app = application.server;
     const userRepo = new UserRepository(application.database);
+    const context = new Context();
 
     let email: string;
     let password: string;
@@ -20,7 +22,7 @@ describe("auth", () => {
         email = faker.internet.email(faker.random.word());
         password = faker.random.uuid();
         const createUserDto = new CreateUserDto(email, password);
-        await userRepo.create(createUserDto);
+        await userRepo.create(context, createUserDto);
     });
 
     test("it can authorize a user", async (done: jest.DoneCallback) => {

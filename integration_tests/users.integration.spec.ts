@@ -1,6 +1,7 @@
 import faker from "faker";
 import request from "supertest";
 import { Application } from "../src/Application";
+import { Context } from "../src/framework/Context";
 import { createJwt } from "../src/users/AuthorizeUserHandler";
 import { CreateUserDto } from "../src/users/CreateUserDto";
 import { UserRepository } from "../src/users/UserRepository";
@@ -61,6 +62,7 @@ describe("users", () => {
     });
 
     describe("GET /users/me", () => {
+        const context = new Context();
         let email;
         let password;
         let jwt: string;
@@ -69,8 +71,8 @@ describe("users", () => {
             email = faker.internet.email(faker.random.word());
             password = faker.random.uuid();
             const createUserDto = new CreateUserDto(email, password);
-            await userRepo.create(createUserDto);
-            const user = await userRepo.findByEmail(email);
+            await userRepo.create(context, createUserDto);
+            const user = await userRepo.findByEmail(context, email);
 
             if (!user) {
                 throw new Error("No user found, something went terribly wrong.");

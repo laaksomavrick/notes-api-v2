@@ -1,5 +1,6 @@
 import { Database } from "../../lib/database";
 import { LoggerFactory } from "../../lib/logger";
+import { Context } from "./Context";
 import { PaginatedResourceDto } from "./PaginatedResourceDto";
 
 export interface IWhereClause {
@@ -26,7 +27,11 @@ export abstract class Repository<T> {
     // tslint:disable-next-line:no-any
     protected abstract parseRowToType(row: any): T;
 
-    public async findAll(fields?: string[], wheres?: IWhereClause[]): Promise<T[]> {
+    public async findAll(
+        context: Context,
+        fields?: string[],
+        wheres?: IWhereClause[],
+    ): Promise<T[]> {
         const { values, whereClause } = this.getWhereClause(wheres);
         const fieldSelection = this.getFieldSelection(fields);
 
@@ -37,6 +42,7 @@ export abstract class Repository<T> {
             ${whereClause}
             `,
             [...values],
+            context,
         );
 
         const rows = resourceQueryResult.rows;
@@ -92,7 +98,7 @@ export abstract class Repository<T> {
         };
     }
 
-    public async findById(id: number, fields?: string[]): Promise<T | undefined> {
+    public async findById(context: Context, id: number, fields?: string[]): Promise<T | undefined> {
         const fieldSelection = this.getFieldSelection(fields);
         const { rows } = await this.database.query(
             `
@@ -100,6 +106,7 @@ export abstract class Repository<T> {
             FROM ${this.tableName}
             WHERE id = $1`,
             [id],
+            context,
         );
         const [row] = rows;
 
@@ -111,6 +118,7 @@ export abstract class Repository<T> {
     }
 
     public async findByIdAndUserId(
+        context: Context,
         id: number,
         userId: number,
         fields?: string[],
@@ -124,6 +132,7 @@ export abstract class Repository<T> {
             AND user_id = $2
             `,
             [id, userId],
+            context,
         );
         const [row] = rows;
 
@@ -134,8 +143,8 @@ export abstract class Repository<T> {
         }
     }
 
-    public async findByIdOrThrow(id: number, fields?: string[]): Promise<T> {
-        const found = this.findById(id, fields);
+    public async findByIdOrThrow(context: Context, id: number, fields?: string[]): Promise<T> {
+        const found = this.findById(context, id, fields);
         if (found === undefined) {
             throw new Error(`findByIdOrThrow throwing, cannot find ${id}`);
         } else {

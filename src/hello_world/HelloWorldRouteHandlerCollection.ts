@@ -3,11 +3,12 @@ import { RouteHandlerCollection } from "../framework/RouteHandlerCollection";
 
 export class HelloWorldRouteHandlerCollection extends RouteHandlerCollection {
     public build(): void {
-        const { app, logger } = this;
+        const { app } = this;
 
         app.get("*", (req: Request, res: Response): void => {
             const now = new Date();
-            logger.info(`Received request at ${now}`);
+            // tslint:disable-next-line:no-any
+            (req as any).context.info(`Received request at ${now}`);
             res.send("Hello, world");
         });
     }

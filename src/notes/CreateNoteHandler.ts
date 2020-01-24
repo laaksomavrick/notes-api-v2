@@ -15,6 +15,8 @@ export class CreateNoteHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
+
         // Get the userId
         const userId = this.getUserId(req);
 
@@ -33,7 +35,7 @@ export class CreateNoteHandler extends Handler {
         }
 
         // Create the folder
-        const note = await this.noteRepository.create(dto, userId);
+        const note = await this.noteRepository.create(context, dto, userId);
 
         this.httpOk(res, { note });
     }

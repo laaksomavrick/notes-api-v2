@@ -13,11 +13,13 @@ export class GetFoldersHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
+
         // Get the userId
         const userId = this.getUserId(req);
 
         // Retrieve folder page
-        const folders = await this.folderRepository.getAllFoldersForUser(userId);
+        const folders = await this.folderRepository.getAllFoldersForUser(context, userId);
 
         this.httpOk(res, { folders });
     }

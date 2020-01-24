@@ -15,10 +15,12 @@ export class CreateFolderHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
+
         // Get the userId
         const userId = this.getUserId(req);
 
-        const count = await this.folderRepository.getActiveCountForUser(userId);
+        const count = await this.folderRepository.getActiveCountForUser(context, userId);
 
         if (count > 10) {
             throw new UnprocessableEntityError();
@@ -39,7 +41,7 @@ export class CreateFolderHandler extends Handler {
         }
 
         // Create the folder
-        const folder = await this.folderRepository.create(dto, userId);
+        const folder = await this.folderRepository.create(context, dto, userId);
 
         this.httpOk(res, { folder });
     }

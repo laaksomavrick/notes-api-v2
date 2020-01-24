@@ -19,6 +19,7 @@ export class CreateUserHandler extends Handler {
     }
 
     protected async handle(req: Request, res: Response, next: NextFunction): Promise<void> {
+        const context = this.getContext(req);
         // Parse dto
         const dto = CreateUserDto.build(req.body);
 
@@ -34,14 +35,14 @@ export class CreateUserHandler extends Handler {
         }
 
         // Check that the user doesn't already exist
-        const exists = await this.userRepository.findByEmail(dto.email);
+        const exists = await this.userRepository.findByEmail(context, dto.email);
 
         if (exists) {
             throw new ConflictError();
         }
 
         // Create user
-        const user = await this.userService.createUser(dto.email, dto.password);
+        const user = await this.userService.createUser(context, dto.email, dto.password);
 
         this.httpOk(res, { user });
     }

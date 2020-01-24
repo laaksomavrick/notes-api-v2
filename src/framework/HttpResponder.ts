@@ -31,7 +31,7 @@ export abstract class HttpResponder {
 
     protected httpError(res: Response, error: HttpError, status: number = 500): void {
         if (status === 500) {
-            this.logger.error(error.toString(), error.stack);
+            this.logger.error(error.toString(), { trace: error.stack });
         }
         res.status(status).send({
             error: {

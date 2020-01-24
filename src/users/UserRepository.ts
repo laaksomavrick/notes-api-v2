@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import { Context } from "../framework/Context";
 import { Repository } from "../framework/Repository";
 import { CreateUserDto } from "./CreateUserDto";
 import { User } from "./User";
@@ -6,13 +7,14 @@ import { User } from "./User";
 export class UserRepository extends Repository<User> {
     protected tableName = "users";
 
-    public async findByEmail(email: string): Promise<User | undefined> {
+    public async findByEmail(context: Context, email: string): Promise<User | undefined> {
         const { rows } = await this.database.query(
             `
             SELECT id, email, created_at, updated_at
             FROM users
             WHERE email = $1`,
             [email],
+            context,
         );
         const [row] = rows;
 
@@ -23,21 +25,25 @@ export class UserRepository extends Repository<User> {
         }
     }
 
-    public async findByEmailOrThrow(email: string): Promise<User> {
-        const user = await this.findByEmail(email);
+    public async findByEmailOrThrow(context: Context, email: string): Promise<User> {
+        const user = await this.findByEmail(context, email);
         if (!user) {
             throw new Error(`User via ${email} not found`);
         }
         return user;
     }
 
-    public async findByEmailWithPassword(email: string): Promise<User | undefined> {
+    public async findByEmailWithPassword(
+        context: Context,
+        email: string,
+    ): Promise<User | undefined> {
         const { rows } = await this.database.query(
             `
             SELECT id, email, password, created_at, updated_at
             FROM users
             WHERE email = $1`,
             [email],
+            context,
         );
         const [row] = rows;
 
@@ -48,7 +54,7 @@ export class UserRepository extends Repository<User> {
         }
     }
 
-    public async create(dto: CreateUserDto): Promise<User> {
+    public async create(context: Context, dto: CreateUserDto): Promise<User> {
         const email = dto.email;
         const password = dto.password;
 
@@ -65,7 +71,7 @@ export class UserRepository extends Repository<User> {
 
         const [{ id }] = queryResult.rows;
 
-        return this.findByIdOrThrow(id, ["id", "email", "created_at", "updated_at"]);
+        return this.findByIdOrThrow(context, id, ["id", "email", "created_at", "updated_at"]);
     }
 
     // tslint:disable-next-line:no-any

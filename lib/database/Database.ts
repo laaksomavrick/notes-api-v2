@@ -1,5 +1,6 @@
 import { stripIndent } from "common-tags";
 import { Pool, PoolClient, QueryResult } from "pg";
+import { Context } from "../../src/framework/Context";
 import { DatabaseConfig } from "../config";
 import { LoggerFactory } from "../logger";
 
@@ -31,12 +32,19 @@ export class Database {
         query: string,
         // tslint:disable-next-line:no-any
         values: any[] = [],
+        context?: Context,
     ): Promise<QueryResult> {
+        let loggableQuery;
         if (this.client === undefined) {
             await this.init();
         }
-        query = stripIndent(query);
-        this.logger.info("executing query", { query, values });
+        loggableQuery = stripIndent(query);
+        loggableQuery = loggableQuery.replace(/\n/g, " ");
+        if (context) {
+            context.info("db exec", { query: loggableQuery, values });
+        } else {
+            this.logger.info("db exec", { query: loggableQuery, values });
+        }
         // @ts-ignore
         return this.client.query(query, values);
     }

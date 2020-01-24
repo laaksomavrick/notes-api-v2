@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { decode } from "jsonwebtoken";
+import { Context } from "./Context";
 import { UnauthorizedError } from "./HttpError";
 import { HttpResponder } from "./HttpResponder";
 
@@ -23,13 +24,14 @@ export abstract class Handler extends HttpResponder {
     protected logRequest(fn: HandlerFn): HandlerFn {
         return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
             try {
+                const context = this.getContext(req);
                 const httpMethod = req.method;
                 const url = req.url;
                 const loggable = {
                     body: JSON.stringify(req.body),
                     params: JSON.stringify(req.params),
                 };
-                this.logger.info(`${httpMethod} ${url}`, loggable);
+                context.info(`${httpMethod} ${url}`, loggable);
                 await fn(req, res, next);
             } catch (e) {
                 next(e);
@@ -79,6 +81,17 @@ export abstract class Handler extends HttpResponder {
             // await fn(req, res, next);
             next();
         };
+    }
+
+    protected getContext(req: Request): Context {
+        // tslint:disable-next-line:no-any
+        const context = (req as any).context;
+
+        if (context) {
+            return context;
+        } else {
+            throw new Error("Context not found, bailing");
+        }
     }
 
     protected getUserId(req: Request): number {

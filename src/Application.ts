@@ -8,6 +8,7 @@ import { ErrorHandler } from "./ErrorHandler";
 import FolderRouteHandlerCollection from "./folders";
 import { HelloWorldRouteHandlerCollection } from "./hello_world/HelloWorldRouteHandlerCollection";
 import NoteRouteHandlerCollection from "./notes";
+import { RequestLogger } from "./RequestLogger";
 import UserRouteHandlerCollection from "./users";
 
 export class Application {
@@ -51,6 +52,9 @@ export class Application {
         this.server.use(bodyParser.urlencoded({ extended: true }));
         this.server.use(bodyParser.json());
         this.server.use(cors());
+
+        const requestLogger = new RequestLogger(this);
+        requestLogger.bindHandler();
 
         if (this.config.helloWorldMode) {
             const helloWorldRouteHandlerCollection = new HelloWorldRouteHandlerCollection(this);

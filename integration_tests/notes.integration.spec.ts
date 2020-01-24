@@ -3,6 +3,7 @@ import request from "supertest";
 import { Application } from "../src/Application";
 import { CreateFolderDto } from "../src/folders/CreateFolderDto";
 import { FolderRepository } from "../src/folders/FolderRepository";
+import { Context } from "../src/framework/Context";
 import { CreateNoteDto } from "../src/notes/CreateNoteDto";
 import { NoteRepository } from "../src/notes/NoteRepository";
 import { createJwt } from "../src/users/AuthorizeUserHandler";
@@ -13,6 +14,7 @@ describe("notes", () => {
     const application = Application.build();
     const app = application.server;
     const config = application.config;
+    const context = new Context();
     const userRepo = new UserRepository(application.database);
     const folderRepo = new FolderRepository(application.database);
     const noteRepo = new NoteRepository(application.database);
@@ -33,11 +35,11 @@ describe("notes", () => {
         const createUserDto = new CreateUserDto(email, password);
         const secondCreateUserDto = new CreateUserDto(secondEmail, password);
 
-        await userRepo.create(createUserDto);
-        await userRepo.create(secondCreateUserDto);
+        await userRepo.create(context, createUserDto);
+        await userRepo.create(context, secondCreateUserDto);
 
-        const user = await userRepo.findByEmail(email);
-        const secondUser = await userRepo.findByEmail(secondEmail);
+        const user = await userRepo.findByEmail(context, email);
+        const secondUser = await userRepo.findByEmail(context, secondEmail);
 
         if (!user || !secondUser) {
             throw new Error("No user found, something went terribly wrong.");
@@ -53,7 +55,7 @@ describe("notes", () => {
         secondJwt = `Bearer ${secondJwt}`;
 
         const createFolderDto = new CreateFolderDto(faker.random.word());
-        const folder = await folderRepo.create(createFolderDto, userId);
+        const folder = await folderRepo.create(context, createFolderDto, userId);
 
         folderId = folder.id;
     });
@@ -134,7 +136,7 @@ describe("notes", () => {
 
             // We want two folders
             const createFolderDto = new CreateFolderDto(faker.random.word());
-            const folder = await folderRepo.create(createFolderDto, userId);
+            const folder = await folderRepo.create(context, createFolderDto, userId);
             secondFolderId = folder.id;
 
             // Three notes, one in folder one, the other in folder two
@@ -142,9 +144,9 @@ describe("notes", () => {
 
             const createNoteDtoForFolderTwo = new CreateNoteDto("name", "content", secondFolderId);
 
-            await noteRepo.create(createNoteDtoForFolderOne, userId);
-            await noteRepo.create(createNoteDtoForFolderTwo, userId);
-            await noteRepo.create(createNoteDtoForFolderTwo, userId);
+            await noteRepo.create(context, createNoteDtoForFolderOne, userId);
+            await noteRepo.create(context, createNoteDtoForFolderTwo, userId);
+            await noteRepo.create(context, createNoteDtoForFolderTwo, userId);
         });
 
         it("can get all notes belonging to a user", async (done: jest.DoneCallback) => {
@@ -191,7 +193,7 @@ describe("notes", () => {
 
         beforeAll(async () => {
             const createNoteDto = new CreateNoteDto("name", "content", folderId);
-            const note = await noteRepo.create(createNoteDto, userId);
+            const note = await noteRepo.create(context, createNoteDto, userId);
 
             updateableNoteId = note.id;
             updateableNoteUrl = `/notes/${updateableNoteId}`;
@@ -268,7 +270,7 @@ describe("notes", () => {
         beforeEach(async () => {
             await application.database.truncate(["notes"]);
             const createNoteDto = new CreateNoteDto("name", "content", folderId);
-            const note = await noteRepo.create(createNoteDto, userId);
+            const note = await noteRepo.create(context, createNoteDto, userId);
             noteId = note.id;
         });
 

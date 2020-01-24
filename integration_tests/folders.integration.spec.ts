@@ -3,6 +3,7 @@ import request from "supertest";
 import { Application } from "../src/Application";
 import { CreateFolderDto } from "../src/folders/CreateFolderDto";
 import { FolderRepository } from "../src/folders/FolderRepository";
+import { Context } from "../src/framework/Context";
 import { createJwt } from "../src/users/AuthorizeUserHandler";
 import { CreateUserDto } from "../src/users/CreateUserDto";
 import { UserRepository } from "../src/users/UserRepository";
@@ -11,6 +12,7 @@ describe("folders", () => {
     const application = Application.build();
     const app = application.server;
     const config = application.config;
+    const context = new Context();
     const userRepo = new UserRepository(application.database);
     const folderRepo = new FolderRepository(application.database);
     const validName = "abcdefgh";
@@ -26,10 +28,10 @@ describe("folders", () => {
         const password = faker.random.uuid();
         const createUserDto = new CreateUserDto(email, password);
         const secondCreateUserDto = new CreateUserDto(secondEmail, password);
-        await userRepo.create(createUserDto);
-        await userRepo.create(secondCreateUserDto);
-        const user = await userRepo.findByEmail(email);
-        const secondUser = await userRepo.findByEmail(secondEmail);
+        await userRepo.create(context, createUserDto);
+        await userRepo.create(context, secondCreateUserDto);
+        const user = await userRepo.findByEmail(context, email);
+        const secondUser = await userRepo.findByEmail(context, secondEmail);
 
         if (!user || !secondUser) {
             throw new Error("No user found, something went terribly wrong.");
@@ -115,7 +117,7 @@ describe("folders", () => {
 
         beforeAll(async () => {
             const createFolderDto = new CreateFolderDto(faker.random.word());
-            const folder = await folderRepo.create(createFolderDto, userId);
+            const folder = await folderRepo.create(context, createFolderDto, userId);
             updateableFolderId = folder.id;
             updateableFolderUrl = `/folders/${updateableFolderId}`;
         });
@@ -211,7 +213,7 @@ describe("folders", () => {
         beforeAll(async () => {
             await application.database.truncate(["folders"]);
             const createFolderDto = new CreateFolderDto(faker.random.word());
-            await folderRepo.create(createFolderDto, userId);
+            await folderRepo.create(context, createFolderDto, userId);
         });
 
         it("can get folders belonging to a user", async (done: jest.DoneCallback) => {
@@ -245,10 +247,10 @@ describe("folders", () => {
             await application.database.truncate(["folders"]);
             const createFolderDto = new CreateFolderDto(faker.random.word());
 
-            const folder = await folderRepo.create(createFolderDto, userId);
+            const folder = await folderRepo.create(context, createFolderDto, userId);
             folderId = folder.id;
 
-            const secondFolder = await folderRepo.create(createFolderDto, userId);
+            const secondFolder = await folderRepo.create(context, createFolderDto, userId);
             secondFolderId = secondFolder.id;
         });
 
@@ -286,7 +288,7 @@ describe("folders", () => {
         });
 
         it("it cannot delete a folder when only one folder exists", async (done: jest.DoneCallback) => {
-            await folderRepo.delete(folderId);
+            await folderRepo.delete(context, folderId);
 
             const response = await request(app)
                 .delete(`/folders/${secondFolderId}`)

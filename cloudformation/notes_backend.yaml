@@ -46,6 +46,41 @@ Parameters:
     Default: notes-api-v2
     Description: The name of the api container definition
 
+  DatabaseName:
+    Type: String
+    Default: notes
+    Description: The name of the database for the db cluster
+
+  DatabasePort:
+    Type: Number
+    Default: 5432
+    Description: The port the database is exposed on
+
+  DatabaseUsername:
+    Type: String
+    Default: username123
+    Description: The username of the database user
+
+  DatabasePassword:
+    Type: String
+    Default: password123
+    Description: The password for the database user
+
+  DatabaseInstanceClass:
+    Type: String
+    Default: db.t3.medium
+    Description: The default database class for the db instances
+
+  DatabaseEngine:
+    Type: String
+    Default: aurora-postgresql
+    Description: The default database engine for the db cluster
+
+  DatabaseEngineVersion:
+    Type: Number
+    Default: 10.7
+    Description: The default database engine version for the db cluster
+
 Resources:
   ## VPC
   NotesBackendVpc:
@@ -87,6 +122,22 @@ Resources:
           ToPort: -1
       VpcId: !Ref NotesBackendVpc
 
+  NotesBackendDatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow all inbound and outbound traffic from private subnets
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref NotesBackendPrivateSecurityGroup
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+      SecurityGroupEgress:
+        - DestinationSecurityGroupId: !Ref NotesBackendPrivateSecurityGroup
+          IpProtocol: -1
+          FromPort: -1
+          ToPort: -1
+      VpcId: !Ref NotesBackendVpc
+
   ## Public Subnets
   NotesApiLoadBalancerSubnetA:
     Type: AWS::EC2::Subnet
@@ -120,6 +171,30 @@ Resources:
       AvailabilityZone: !Ref AvailabilityZoneB
       MapPublicIpOnLaunch: false
       VpcId: !Ref NotesBackendVpc
+
+  NotesDatabaseSubnetA:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.12.0/24
+      AvailabilityZone: !Ref AvailabilityZoneA
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref NotesBackendVpc
+
+  NotesDatabaseSubnetB:
+    Type: AWS::EC2::Subnet
+    Properties:
+      CidrBlock: 10.0.23.0/24
+      AvailabilityZone: !Ref AvailabilityZoneB
+      MapPublicIpOnLaunch: false
+      VpcId: !Ref NotesBackendVpc
+
+  NotesDatabaseSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: !Ref AWS::StackName
+      SubnetIds:
+        - !Ref NotesDatabaseSubnetA
+        - !Ref NotesDatabaseSubnetB
 
   # Elastic IPs
   NotesApiElasticIpA:
@@ -314,7 +389,17 @@ Resources:
             - ContainerPort: !Ref ApiPort
           Environment:
             - Name: HELLO_WORLD_MODE
-              Value: true
+              Value: false
+            - Name: DB_HOST
+              Value: !GetAtt NotesDatabase.Endpoint.Address
+            - Name: DB_PORT
+              Value: !Ref DatabasePort
+            - Name: DB_USERNAME
+              Value: !Ref DatabaseUsername
+            - Name: DB_PASSWORD
+              Value: !Ref DatabasePassword
+            - Name: DB_SCHEMA
+              Value: !Ref DatabaseName
           LogConfiguration:
             LogDriver: awslogs
             Options:
@@ -324,6 +409,9 @@ Resources:
 
   NotesApiEcsService:
     Type: AWS::ECS::Service
+    DependsOn:
+      - NotesDatabaseInstanceA # If service comes up before database, explosion
+      - NotesDatabaseInstanceB # If service comes up before database, explosion
     Properties:
       Cluster: !Ref NotesApiEcsCluster
       DesiredCount: 1
@@ -344,3 +432,50 @@ Resources:
         - ContainerName: !Ref ContainerName
           ContainerPort: !Ref ApiPort
           TargetGroupArn: !Ref NotesApiLoadBalancerTargetGroup
+
+  ## RDS
+  NotesDatabaseParameterGroup:
+    Type: AWS::RDS::DBClusterParameterGroup
+    Properties:
+      Description: !Ref AWS::StackName
+      Family: aurora-postgresql10
+      Parameters:
+        rds.force_ssl: 0
+
+  NotesDatabase:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      AvailabilityZones:
+        - !Ref AvailabilityZoneA
+        - !Ref AvailabilityZoneB
+      DatabaseName: !Ref DatabaseName
+      DBClusterParameterGroupName: !Ref NotesDatabaseParameterGroup
+      DBSubnetGroupName: !Ref NotesDatabaseSubnetGroup
+      Engine: !Ref DatabaseEngine
+      EngineMode: provisioned
+      EngineVersion: !Ref DatabaseEngineVersion
+      MasterUsername: !Ref DatabaseUsername
+      MasterUserPassword: !Ref DatabasePassword
+      Port: !Ref DatabasePort
+      VpcSecurityGroupIds:
+        - !Ref NotesBackendDatabaseSecurityGroup
+
+  NotesDatabaseInstanceA:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      DBClusterIdentifier: !Ref NotesDatabase
+      DBSubnetGroupName: !Ref NotesDatabaseSubnetGroup
+      PubliclyAccessible: false
+      Engine: !Ref DatabaseEngine
+      EngineVersion: !Ref DatabaseEngineVersion
+
+  NotesDatabaseInstanceB:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBInstanceClass: !Ref DatabaseInstanceClass
+      DBClusterIdentifier: !Ref NotesDatabase
+      DBSubnetGroupName: !Ref NotesDatabaseSubnetGroup
+      PubliclyAccessible: false
+      Engine: !Ref DatabaseEngine
+      EngineVersion: !Ref DatabaseEngineVersion

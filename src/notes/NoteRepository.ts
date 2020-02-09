@@ -1,5 +1,5 @@
 import { Context } from "../framework/Context";
-import { Repository } from "../framework/Repository";
+import { IOrderByClause, OrderByValue, Repository } from "../framework/Repository";
 import { CreateNoteDto } from "./CreateNoteDto";
 import { GetNotesDto } from "./GetNotesDto";
 import { Note } from "./Note";
@@ -12,11 +12,17 @@ export class NoteRepository extends Repository<Note> {
         const folderId = dto.folderId;
         const wheres = [{ field: "user_id", value: userId }, { field: "deleted", value: false }];
 
+        let orderBy;
+
         if (folderId) {
             wheres.push({ field: "folder_id", value: folderId });
         }
 
-        return this.findAll(context, ["*"], wheres);
+        if (dto.orderBy) {
+            orderBy = { field: dto.orderBy.getFieldSnakeCase(), value: OrderByValue.DESC };
+        }
+
+        return this.findAll(context, ["*"], wheres, orderBy);
     }
 
     public async create(context: Context, dto: CreateNoteDto, userId: number): Promise<Note> {

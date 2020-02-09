@@ -1,3 +1,4 @@
+import { isAfter, parseISO } from "date-fns";
 import faker from "faker";
 import request from "supertest";
 import { Application } from "../src/Application";
@@ -9,6 +10,7 @@ import { NoteRepository } from "../src/notes/NoteRepository";
 import { createJwt } from "../src/users/AuthorizeUserHandler";
 import { CreateUserDto } from "../src/users/CreateUserDto";
 import { UserRepository } from "../src/users/UserRepository";
+import { sleep } from "./helpers";
 
 describe("notes", () => {
     const application = Application.build();
@@ -129,7 +131,7 @@ describe("notes", () => {
     });
 
     describe("GET /notes", () => {
-        let secondFolderId;
+        let secondFolderId: number;
 
         beforeAll(async () => {
             await application.database.truncate(["notes"]);
@@ -146,6 +148,10 @@ describe("notes", () => {
 
             await noteRepo.create(context, createNoteDtoForFolderOne, userId);
             await noteRepo.create(context, createNoteDtoForFolderTwo, userId);
+
+            // for updatedAt to be different, need to wait 1s
+            await sleep(1000);
+
             await noteRepo.create(context, createNoteDtoForFolderTwo, userId);
         });
 
@@ -172,6 +178,25 @@ describe("notes", () => {
             expect(response.status).toBe(200);
             expect(response.body.resource.notes).toBeDefined();
             expect(response.body.resource.notes.length).toBe(1);
+            done();
+        });
+
+        it("can get all notes in a particular order", async (done: jest.DoneCallback) => {
+            const response = await request(app)
+                .get(`/notes?folderId=${secondFolderId}`)
+                .set({
+                    Authorization: jwt,
+                })
+                .send();
+
+            const [firstNote, secondNote] = response.body.resource.notes;
+            const isRightOrder = isAfter(
+                parseISO(firstNote.updatedAt),
+                parseISO(secondNote.updatedAt),
+            );
+
+            expect(response.status).toBe(200);
+            expect(isRightOrder).toBeTruthy();
             done();
         });
 

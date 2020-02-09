@@ -3,6 +3,16 @@ import { LoggerFactory } from "../../lib/logger";
 import { Context } from "./Context";
 import { PaginatedResourceDto } from "./PaginatedResourceDto";
 
+export enum OrderByValue {
+    ASC = "ASC",
+    DESC = "DESC",
+}
+
+export interface IOrderByClause {
+    field: string;
+    value: OrderByValue;
+}
+
 export interface IWhereClause {
     field: string;
     value: string | number | boolean;
@@ -31,8 +41,10 @@ export abstract class Repository<T> {
         context: Context,
         fields?: string[],
         wheres?: IWhereClause[],
+        orderBy?: IOrderByClause,
     ): Promise<T[]> {
         const { values, whereClause } = this.getWhereClause(wheres);
+        const orderByClause = this.getOrderByClause(orderBy);
         const fieldSelection = this.getFieldSelection(fields);
 
         const resourceQueryResult = await this.database.query(
@@ -40,6 +52,7 @@ export abstract class Repository<T> {
             SELECT ${fieldSelection}
             FROM ${this.tableName}
             ${whereClause}
+            ${orderByClause}
             `,
             [...values],
             context,
@@ -172,6 +185,16 @@ export abstract class Repository<T> {
         }
 
         return { whereClause, values };
+    }
+
+    private getOrderByClause(orderBy?: IOrderByClause): string {
+        let orderByClause = "";
+
+        if (orderBy) {
+            orderByClause = `ORDER BY ${orderBy.field} ${orderBy.value}`;
+        }
+
+        return orderByClause;
     }
 
     private getFieldSelection(fields?: string[]): string {

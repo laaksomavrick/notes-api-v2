@@ -69,7 +69,7 @@ describe("notes", () => {
     describe("POST /notes", () => {
         it("can create a note", async (done: jest.DoneCallback) => {
             const payload = {
-                note: { name: faker.random.word(), content: faker.lorem.paragraph(), folderId },
+                note: { content: faker.lorem.paragraph(), folderId },
             };
             const response = await request(app)
                 .post("/notes")
@@ -84,7 +84,7 @@ describe("notes", () => {
 
         it("fails creating a note for an unauthorized request ", async (done: jest.DoneCallback) => {
             const payload = {
-                note: { name: faker.random.word(), content: faker.lorem.paragraph(), folderId },
+                note: { content: faker.lorem.paragraph(), folderId },
             };
             const response = await request(app)
                 .post("/notes")
@@ -106,28 +106,6 @@ describe("notes", () => {
             expect(response.body.error).toBeDefined();
             done();
         });
-
-        it("fails creating a note for an invalid request ", async (done: jest.DoneCallback) => {
-            const longString = Array.from(Array(32))
-                // tslint:disable-next-line:typedef
-                .map(_ => "A")
-                .join("");
-            const payloadTooShort = { note: { name: "", content: "", folderId } };
-            const payloadTooLong = { note: { name: longString, content: "", folderId } };
-            const payloads = [payloadTooLong, payloadTooShort];
-
-            for (const payload of payloads) {
-                const response = await request(app)
-                    .post("/notes")
-                    .set({
-                        Authorization: jwt,
-                    })
-                    .send(payload);
-                expect(response.status).toBe(422);
-                expect(response.body.error).toBeDefined();
-            }
-            done();
-        });
     });
 
     describe("GET /notes", () => {
@@ -142,9 +120,9 @@ describe("notes", () => {
             secondFolderId = folder.id;
 
             // Three notes, one in folder one, the other in folder two
-            const createNoteDtoForFolderOne = new CreateNoteDto("name", "content", folderId);
+            const createNoteDtoForFolderOne = new CreateNoteDto("content", folderId);
 
-            const createNoteDtoForFolderTwo = new CreateNoteDto("name", "content", secondFolderId);
+            const createNoteDtoForFolderTwo = new CreateNoteDto("content", secondFolderId);
 
             await noteRepo.create(context, createNoteDtoForFolderOne, userId);
             await noteRepo.create(context, createNoteDtoForFolderTwo, userId);
@@ -183,7 +161,7 @@ describe("notes", () => {
 
         it("can get all notes in a particular order", async (done: jest.DoneCallback) => {
             const response = await request(app)
-                .get(`/notes?folderId=${secondFolderId}`)
+                .get(`/notes?folderId=${secondFolderId}&orderBy=updatedAt`)
                 .set({
                     Authorization: jwt,
                 })
@@ -211,13 +189,12 @@ describe("notes", () => {
     });
 
     describe("PATCH /notes", () => {
-        const validName = "aaaaaaaa";
         const validContent = "aaaaaaaa";
         let updateableNoteId: number;
         let updateableNoteUrl: string;
 
         beforeAll(async () => {
-            const createNoteDto = new CreateNoteDto("name", "content", folderId);
+            const createNoteDto = new CreateNoteDto("content", folderId);
             const note = await noteRepo.create(context, createNoteDto, userId);
 
             updateableNoteId = note.id;
@@ -225,8 +202,8 @@ describe("notes", () => {
         });
 
         it("can update a note", async (done: jest.DoneCallback) => {
-            const newName = "qweqweqwe";
-            const payload = { note: { name: newName, content: validContent, folderId } };
+            const newContent = "qweqweqwe";
+            const payload = { note: { content: newContent, folderId } };
             const response = await request(app)
                 .patch(updateableNoteUrl)
                 .set({
@@ -235,12 +212,12 @@ describe("notes", () => {
                 .send(payload);
             expect(response.status).toBe(200);
             expect(response.body.resource.note).toBeDefined();
-            expect(response.body.resource.note.name).toBe(newName);
+            expect(response.body.resource.note.content).toBe(newContent);
             done();
         });
 
         it("fails updating a note for an unauthorized request ", async (done: jest.DoneCallback) => {
-            const payload = { note: { name: validName, content: validContent, folderId } };
+            const payload = { note: { content: validContent, folderId } };
             const response = await request(app)
                 .patch(updateableNoteUrl)
                 .send(payload);
@@ -250,7 +227,7 @@ describe("notes", () => {
         });
 
         it("fails updating a note that does not exist ", async (done: jest.DoneCallback) => {
-            const payload = { note: { name: validName, content: validContent, folderId } };
+            const payload = { note: { content: validContent, folderId } };
             const response = await request(app)
                 .patch(`/notes/${updateableNoteId + 1}`)
                 .set({
@@ -263,7 +240,7 @@ describe("notes", () => {
         });
 
         it("fails updating a note that belongs to another user", async (done: jest.DoneCallback) => {
-            const payload = { note: { name: validName, content: validContent, folderId } };
+            const payload = { note: { content: validContent, folderId } };
             const response = await request(app)
                 .patch(`/notes/${updateableNoteId}`)
                 .set({
@@ -294,7 +271,7 @@ describe("notes", () => {
 
         beforeEach(async () => {
             await application.database.truncate(["notes"]);
-            const createNoteDto = new CreateNoteDto("name", "content", folderId);
+            const createNoteDto = new CreateNoteDto("content", folderId);
             const note = await noteRepo.create(context, createNoteDto, userId);
             noteId = note.id;
         });

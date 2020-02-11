@@ -2,15 +2,12 @@ import { Request } from "express";
 import { Dto } from "../framework/Dto";
 
 export class CreateNoteDto extends Dto {
-    public name: string;
-
     public content: string;
 
     public folderId: number;
 
-    constructor(name: string, content: string, folderId: number) {
+    constructor(content: string, folderId: number) {
         super();
-        this.name = name;
         this.content = content;
         this.folderId = folderId;
     }
@@ -27,12 +24,6 @@ export class CreateNoteDto extends Dto {
             return undefined;
         }
 
-        const nameOk = body.note.name != null;
-
-        if (!nameOk) {
-            return undefined;
-        }
-
         const contentOk = body.note.content != null;
 
         if (!contentOk) {
@@ -45,12 +36,12 @@ export class CreateNoteDto extends Dto {
             return undefined;
         }
 
-        const { name, content, folderId } = body.note;
+        const { content, folderId } = body.note;
 
-        return new CreateNoteDto(name, content, folderId);
+        return new CreateNoteDto(content, folderId);
     }
 
     public isValid(): boolean {
-        return this.name.length > 0 && this.name.length < 32;
+        return true;
     }
 }

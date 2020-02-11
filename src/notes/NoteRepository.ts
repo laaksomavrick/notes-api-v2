@@ -1,5 +1,5 @@
 import { Context } from "../framework/Context";
-import { IOrderByClause, OrderByValue, Repository } from "../framework/Repository";
+import { OrderByValue, Repository } from "../framework/Repository";
 import { CreateNoteDto } from "./CreateNoteDto";
 import { GetNotesDto } from "./GetNotesDto";
 import { Note } from "./Note";
@@ -26,16 +26,15 @@ export class NoteRepository extends Repository<Note> {
     }
 
     public async create(context: Context, dto: CreateNoteDto, userId: number): Promise<Note> {
-        const name = dto.name;
         const content = dto.content;
         const folderId = dto.folderId;
 
         const queryResult = await this.database.query(
             `
-            INSERT INTO notes (name, user_id, folder_id, content)
-            VALUES ($1, $2, $3, $4)
+            INSERT INTO notes (user_id, folder_id, content)
+            VALUES ($1, $2, $3)
             RETURNING id`,
-            [name, userId, folderId, content],
+            [userId, folderId, content],
             context,
         );
 
@@ -45,7 +44,6 @@ export class NoteRepository extends Repository<Note> {
             "id",
             "user_id",
             "folder_id",
-            "name",
             "content",
             "created_at",
             "updated_at",
@@ -53,19 +51,17 @@ export class NoteRepository extends Repository<Note> {
     }
 
     public async update(context: Context, dto: UpdateNoteDto, noteId: number): Promise<Note> {
-        const name = dto.name;
         const content = dto.content;
         const folderId = dto.folderId;
 
         const queryResult = await this.database.query(
             `
             UPDATE notes
-            SET name = $1,
-                content = $2,
-                folder_id = $3
-            WHERE id = $4
+            SET content = $1,
+                folder_id = $2
+            WHERE id = $3
             RETURNING id`,
-            [name, content, folderId, noteId],
+            [content, folderId, noteId],
             context,
         );
 
@@ -74,7 +70,6 @@ export class NoteRepository extends Repository<Note> {
         return this.findByIdOrThrow(context, id, [
             "id",
             "user_id",
-            "name",
             "content",
             "folder_id",
             "created_at",
@@ -100,7 +95,6 @@ export class NoteRepository extends Repository<Note> {
             row.id,
             row.user_id,
             row.folder_id,
-            row.name,
             row.content,
             row.deleted,
             new Date(row.created_at),

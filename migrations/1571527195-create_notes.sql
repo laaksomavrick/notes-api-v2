@@ -2,7 +2,6 @@ CREATE TABLE IF NOT EXISTS notes (
     id serial PRIMARY KEY,
     user_id INTEGER NOT NULL,
     folder_id INTEGER NOT NULL,
-    name VARCHAR(128) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

@@ -9,6 +9,7 @@ import FolderRouteHandlerCollection from "./folders";
 import { HelloWorldRouteHandlerCollection } from "./hello_world/HelloWorldRouteHandlerCollection";
 import NoteRouteHandlerCollection from "./notes";
 import { RequestLogger } from "./RequestLogger";
+import SearchRouteHandlerCollection from "./search/SearchRouteHandlerCollection";
 import UserRouteHandlerCollection from "./users";
 
 export class Application {
@@ -64,12 +65,15 @@ export class Application {
             const userRouteHandlerCollection = new UserRouteHandlerCollection(this);
             const folderRouteHandlerCollection = new FolderRouteHandlerCollection(this);
             const noteRouteHandlerCollection = new NoteRouteHandlerCollection(this);
+            const searchRouteHandlerCollection = new SearchRouteHandlerCollection(this);
 
             const routeHandlerCollections = [
                 userRouteHandlerCollection,
                 folderRouteHandlerCollection,
                 noteRouteHandlerCollection,
+                searchRouteHandlerCollection,
             ];
+
             for (const routeHandlerCollection of routeHandlerCollections) {
                 routeHandlerCollection.build();
             }

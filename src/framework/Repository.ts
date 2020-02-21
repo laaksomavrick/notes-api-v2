@@ -18,6 +18,11 @@ export interface IWhereClause {
     value: string | number | boolean;
 }
 
+export interface ISearchClause {
+    field: string;
+    value: string;
+}
+
 export interface IPaginatedQueryResponse<T> {
     resource: T[];
     remainingPages: number;
@@ -42,8 +47,9 @@ export abstract class Repository<T> {
         fields?: string[],
         wheres?: IWhereClause[],
         orderBy?: IOrderByClause,
+        search?: ISearchClause,
     ): Promise<T[]> {
-        const { values, whereClause } = this.getWhereClause(wheres);
+        const { values, whereClause } = this.getWhereClause(wheres, search);
         const orderByClause = this.getOrderByClause(orderBy);
         const fieldSelection = this.getFieldSelection(fields);
 
@@ -168,6 +174,7 @@ export abstract class Repository<T> {
 
     private getWhereClause(
         wheres?: IWhereClause[],
+        search?: ISearchClause,
     ): { whereClause: string; values: Array<string | number | boolean> } {
         const values = [];
         let whereClause = "";
@@ -182,6 +189,19 @@ export abstract class Repository<T> {
                 }
                 values.push(where.value);
             }
+        }
+
+        if (search) {
+            const lowercased = search.value.toLowerCase();
+            const happyParamQuery = `%${lowercased}%`;
+            if (whereClause === "") {
+                whereClause = `WHERE ${search.field} LIKE $${0}`;
+            } else {
+                const searchIndex = values.length + 1;
+                whereClause = `${whereClause} AND ${search.field} LIKE $${searchIndex}`;
+            }
+
+            values.push(happyParamQuery);
         }
 
         return { whereClause, values };

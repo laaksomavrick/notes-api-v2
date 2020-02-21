@@ -25,6 +25,13 @@ export class NoteRepository extends Repository<Note> {
         return this.findAll(context, ["*"], wheres, orderBy);
     }
 
+    public async searchNotes(context: Context, userId: number, query: string): Promise<Note[]> {
+        const wheres = [{ field: "user_id", value: userId }, { field: "deleted", value: false }];
+        const searchWhere = { field: "content", value: query };
+
+        return this.findAll(context, ["id"], wheres, undefined, searchWhere);
+    }
+
     public async create(context: Context, dto: CreateNoteDto, userId: number): Promise<Note> {
         const content = dto.content;
         const folderId = dto.folderId;

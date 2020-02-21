@@ -15,6 +15,14 @@ export class FolderRepository extends Repository<Folder> {
         );
     }
 
+    public async searchFolders(context: Context, userId: number, query: string): Promise<Folder[]> {
+        const fields = ["id"];
+        const wheres = [{ field: "user_id", value: userId }, { field: "deleted", value: false }];
+        const searchWhere = { field: "name", value: query };
+
+        return this.findAll(context, fields, wheres, undefined, searchWhere);
+    }
+
     public async create(context: Context, dto: CreateFolderDto, userId: number): Promise<Folder> {
         const name = dto.name;
 

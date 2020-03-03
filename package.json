@@ -6,8 +6,9 @@
   "engine": "12",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "lint": "tslint -c tslint.json --fix 'src/**/*.ts' 'lib/**/*.ts' 'integration_tests/**.*.ts' 'tasks/**/*.ts'",
-    "format": "prettier --write 'lib/**/*.ts' 'src/**/*.ts' 'integration_tests/**/*.ts' 'tasks/**/*.ts'",
+    "start:dev": "nodemon",
+    "lint": "tslint -c tslint.json --fix '**/*.ts'",
+    "format": "prettier --write '**/*.ts'",
     "test": "jest --forceExit --runInBand",
     "build": "rimraf dist && tsc",
     "db:init": "ts-node tasks/create-database.ts",
@@ -19,6 +20,8 @@
     "@types/body-parser": "^1.17.1",
     "@types/change-case": "^2.3.1",
     "@types/convict": "^4.2.1",
+    "@types/common-tags": "^1.8.0",
+    "@types/jsonwebtoken": "^8.3.5",
     "@types/cors": "^2.8.6",
     "@types/date-fns": "^2.6.0",
     "@types/express": "^4.17.1",
@@ -37,11 +40,12 @@
     "ts-jest": "^24.1.0",
     "ts-node": "^8.4.1",
     "tslint": "^5.20.0",
-    "typescript": "^3.6.3"
+    "typescript": "^3.6.3",
+    "nodemon": "^1.18.9",
+    "rimraf": "^3.0.0",
+    "tsconfig-paths": "^3.7.0"
   },
   "dependencies": {
-    "@types/common-tags": "^1.8.0",
-    "@types/jsonwebtoken": "^8.3.5",
     "bcrypt": "^3.0.6",
     "body-parser": "^1.19.0",
     "change-case": "^4.1.1",
@@ -52,7 +56,6 @@
     "express": "^4.17.1",
     "jsonwebtoken": "^8.5.1",
     "pg": "^7.12.1",
-    "rimraf": "^3.0.0",
     "uuid": "^3.4.0",
     "winston": "^3.2.1"
   },

@@ -16,7 +16,7 @@ export class FolderRepository extends Repository<Folder> {
     }
 
     public async searchFolders(context: Context, userId: number, query: string): Promise<Folder[]> {
-        const fields = ["id"];
+        const fields = ["id", "name"];
         const wheres = [{ field: "user_id", value: userId }, { field: "deleted", value: false }];
         const searchWhere = { field: "name", value: query };
 
@@ -105,8 +105,8 @@ export class FolderRepository extends Repository<Folder> {
             row.user_id,
             row.name,
             row.deleted,
-            new Date(row.created_at),
-            new Date(row.updated_at),
+            row.created_at,
+            row.updated_at,
         );
     }
 }

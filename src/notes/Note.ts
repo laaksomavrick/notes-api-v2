@@ -9,9 +9,9 @@ export class Note {
 
     public deleted: boolean;
 
-    public createdAt: Date;
+    public createdAt: string;
 
-    public updatedAt: Date;
+    public updatedAt: string;
 
     constructor(
         id: number,
@@ -19,8 +19,8 @@ export class Note {
         folderId: number,
         content: string,
         deleted: boolean,
-        createdAt: Date,
-        updatedAt: Date,
+        createdAt: string,
+        updatedAt: string,
     ) {
         this.id = id;
         this.userId = userId;

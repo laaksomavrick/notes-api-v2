@@ -7,17 +7,17 @@ export class Folder {
 
     public deleted: boolean;
 
-    public createdAt: Date;
+    public createdAt: string;
 
-    public updatedAt: Date;
+    public updatedAt: string;
 
     constructor(
         id: number,
         userId: number,
         name: string,
         deleted: boolean,
-        createdAt: Date,
-        updatedAt: Date,
+        createdAt: string,
+        updatedAt: string,
     ) {
         this.id = id;
         this.userId = userId;

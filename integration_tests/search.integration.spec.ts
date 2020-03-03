@@ -2,9 +2,11 @@ import faker from "faker";
 import request from "supertest";
 import { Application } from "../src/Application";
 import { CreateFolderDto } from "../src/folders/CreateFolderDto";
+import { Folder } from "../src/folders/Folder";
 import { FolderRepository } from "../src/folders/FolderRepository";
 import { Context } from "../src/framework/Context";
 import { CreateNoteDto } from "../src/notes/CreateNoteDto";
+import { Note } from "../src/notes/Note";
 import { NoteRepository } from "../src/notes/NoteRepository";
 import { createJwt } from "../src/users/AuthorizeUserHandler";
 import { CreateUserDto } from "../src/users/CreateUserDto";
@@ -28,8 +30,9 @@ describe("search", () => {
     let jwt: string;
     let userId: number;
     let folderId: number;
-    let firstNoteId: number;
-    let secondNoteId: number;
+    let folder: Folder;
+    let firstNote: Note;
+    let secondNote: Note;
 
     beforeAll(async () => {
         const email = faker.internet.email(faker.random.word());
@@ -51,18 +54,15 @@ describe("search", () => {
         jwt = `Bearer ${jwt}`;
 
         const createFolderDto = new CreateFolderDto(folderName);
-        const folder = await folderRepo.create(context, createFolderDto, userId);
+        folder = await folderRepo.create(context, createFolderDto, userId);
 
         folderId = folder.id;
 
         const firstCreateNoteDto = new CreateNoteDto(firstNoteName, folderId);
         const secondCreateNoteDto = new CreateNoteDto(secondNoteName, folderId);
 
-        const firstNote = await noteRepo.create(context, firstCreateNoteDto, userId);
-        const secondNote = await noteRepo.create(context, secondCreateNoteDto, userId);
-
-        firstNoteId = firstNote.id;
-        secondNoteId = secondNote.id;
+        firstNote = await noteRepo.create(context, firstCreateNoteDto, userId);
+        secondNote = await noteRepo.create(context, secondCreateNoteDto, userId);
     });
 
     afterAll(async () => {
@@ -79,12 +79,14 @@ describe("search", () => {
                 })
                 .send(payload);
             expect(response.status).toBe(200);
-            expect(response.body.resource.folderIds).toEqual([]);
-            expect(response.body.resource.noteIds).toEqual([]);
+            expect(response.body.resource.folders).toEqual([]);
+            expect(response.body.resource.notes).toEqual([]);
             done();
         });
 
         it("produces a match when only one entity is matched", async (done: jest.DoneCallback) => {
+            // tslint:disable-next-line:no-shadowed-variable
+            const { id, folderId, content } = secondNote;
             const payload = { search: { query: secondNoteName } };
             const response = await request(app)
                 .post("/search/all")
@@ -93,12 +95,13 @@ describe("search", () => {
                 })
                 .send(payload);
             expect(response.status).toBe(200);
-            expect(response.body.resource.folderIds).toEqual([]);
-            expect(response.body.resource.noteIds).toEqual([secondNoteId]);
+            expect(response.body.resource.folders).toEqual([]);
+            expect(response.body.resource.notes).toEqual([{ id, folderId, content }]);
             done();
         });
 
         it("produces a match when both folders and notes are matched", async (done: jest.DoneCallback) => {
+            // tslint:disable-next-line:no-shadowed-variable
             const payload = { search: { query: firstNoteName } };
             const response = await request(app)
                 .post("/search/all")
@@ -107,8 +110,10 @@ describe("search", () => {
                 })
                 .send(payload);
             expect(response.status).toBe(200);
-            expect(response.body.resource.folderIds).toEqual([folderId]);
-            expect(response.body.resource.noteIds).toEqual([firstNoteId]);
+            expect(response.body.resource.folders).toEqual([{ id: folder.id, name: folder.name }]);
+            expect(response.body.resource.notes).toEqual([
+                { id: firstNote.id, folderId: firstNote.folderId, content: firstNote.content },
+            ]);
             done();
         });
 

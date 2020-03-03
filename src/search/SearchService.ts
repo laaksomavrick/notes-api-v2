@@ -6,8 +6,8 @@ import { NoteRepository } from "../notes/NoteRepository";
 import { SearchDto } from "./SearchDto";
 
 export interface IAllSearchResult {
-    folderIds: number[];
-    noteIds: number[];
+    folders: Folder[];
+    notes: Note[];
 }
 
 export class SearchService {
@@ -28,12 +28,9 @@ export class SearchService {
         const notes = await this.noteRepository.searchNotes(context, userId, dto.query);
         const folders = await this.folderRepository.searchFolders(context, userId, dto.query);
 
-        const noteIds = notes.map((note: Note) => note.id);
-        const folderIds = folders.map((folder: Folder) => folder.id);
-
         return {
-            folderIds,
-            noteIds,
+            folders,
+            notes,
         };
     }
 }

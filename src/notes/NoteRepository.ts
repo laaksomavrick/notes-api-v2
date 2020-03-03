@@ -29,7 +29,13 @@ export class NoteRepository extends Repository<Note> {
         const wheres = [{ field: "user_id", value: userId }, { field: "deleted", value: false }];
         const searchWhere = { field: "content", value: query };
 
-        return this.findAll(context, ["id"], wheres, undefined, searchWhere);
+        return this.findAll(
+            context,
+            ["id", "content", "folder_id"],
+            wheres,
+            undefined,
+            searchWhere,
+        );
     }
 
     public async create(context: Context, dto: CreateNoteDto, userId: number): Promise<Note> {
@@ -104,8 +110,8 @@ export class NoteRepository extends Repository<Note> {
             row.folder_id,
             row.content,
             row.deleted,
-            new Date(row.created_at),
-            new Date(row.updated_at),
+            row.created_at,
+            row.updated_at,
         );
     }
 }
